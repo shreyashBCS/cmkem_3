@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership Renewal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f1dd;
+        }
+
+        .header {
+            background-color: #4a0404;
+            color: white;
+            padding: 10px 0;
+        }
+
+        .logo {
+            height: 50px;
+        }
+
+        .sidebar {
+            background-color: #ffa500;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .ganesh-img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+        }
+
+        .online-status {
+            color: #2ecc71;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .title-bar {
+            background-color: #f8d77e;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .warning-text {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="{{ url_for('static',filename='logo.jpg') }}" alt="Logo" style="height: 40px;"
+                        class="me-2">
+                </div>
+                <div>
+                    <button class="btn btn-link text-white"><i class="bi bi-envelope fs-3"></i></button>
+                    <button class="btn btn-link text-white"><i class="bi bi-person fs-3"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 sidebar">
+                <div class="text-center">
+                    <img src="https://placeholder.com/100" alt="Ganesh" class="ganesh-img">
+                    <h5>SHREE GANESH</h5>
+                    <p class="online-status">● Online</p>
+                    <p class="small">Logged in since<br>4:24pm, Friday, 3rd January 2025</p>
+                </div>
+            </div>
+
+            <div class="col-md-9 main-content">
+                <div class=" d-flex justify-content-between">
+                    <h4>Membership Renewal of {{ name }}</h4>
+                    <h4>Reg. No. = {{ reg_id }}</h4>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <p>Date Registered: 1st January 2012</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Last Renewed On: 31st December 2019</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="warning-text">Expected Renewal Date: 31st December 2019</p>
+                                <p class="warning-text">Delay in Renewal - Rs. 50/- penalty will be added to renewal
+                                    fees.</p>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ url_for('renew_membership') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Enter Renewal Fees</label>
+                                <input type="number" class="form-control" name="renewal_fees" required>
+                            </div>
+
+                            <h5>Next Renewal Cycle</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Next From Date</label>
+                                    <input type="date" class="form-control" name="next_from_date" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Next To Date</label>
+                                    <input type="date" class="form-control" name="next_to_date" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Delay in Renewal</label>
+                                    <select class="form-select" name="delay_in_renewal">
+                                        <option>No</option>
+                                        <option>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Renewal Penalty</label>
+                                    <input type="number" class="form-control" name="renewal_penalty" value="0" required>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-center">
+                                <button type="submit" class="btn btn-primary me-2"
+                                    style="background-color: #3276B1;">Submit</button>
+                                <button type="button" class="btn btn-success"
+                                    style="background-color: #47A447;">Cancel</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

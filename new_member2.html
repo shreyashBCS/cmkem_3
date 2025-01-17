@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Member Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<style>
+    .sidebar {
+        background-color: #F3AB06;
+        height: 100vh;
+        color: white;
+        padding-top: 20px;
+    }
+
+    .sidebar .nav-link {
+        color: white;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .sidebar .nav-link:hover {
+        background-color: #b71c1c;
+        color: white;
+    }
+
+    .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+        color: #d32f2f;
+    }
+</style>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark " style="background-color: #3B0909;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="logo.jpg" alt="Logo" style="height: 40px;" class="me-2">
+                <span class="text-warning"> </span>
+                <span class="text-white"> </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end gap-4" id="navbarNav">
+                <ul class="navbar-nav">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-list text-white fs-2"></i> </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-envelope-fill text-white fs-2"></i>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-person-fill text-white fs-2"></i>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+
+
+    <div class="container-fluid" style="background-color: #F7E3B4;">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="text-center mb-4">
+                    <img src="" alt="Logo" class="img-fluid rounded-circle" style="max-width: 80px;">
+                    <h5>SHREE GANESH</h5>
+                    <p class="text-light">Online</p>
+                </div>
+                <div class="text-center mb-4">
+                    <p>Logged in since</p>
+                    <p>3:59pm, Saturday, 4th January 2025</p>
+                </div>
+                <nav class="nav flex-column ">
+                    <a href="#" class="nav-link py-1 ">Dashboard</a>
+                    <a href="#" class="nav-link py-1 ">Change Password</a>
+                    <a href="#" class="nav-link py-1">User Accounts</a>
+                    <a href="#" class="nav-link py-1">Backup Database</a>
+                </nav>
+            </div>
+            <div class="col-md-10 main-content">
+                <div class="header d-flex justify-content-between align-items-center">
+                    <h2 class="mt-2 fs-1" style="font-size: larger;">New Member Registration
+                    </h2>
+                </div>
+                <div class="container mt-4 ">
+                    <!-- Registration Form -->
+                    <div class="card">
+                        <div class="card-body">
+                            <form class="row g-3">
+                                <!-- First Line (4 fields in one line) -->
+                                <div class="col-md-3">
+                                    <label for="RegID" class="form-label fw-bold">REG ID</label>
+                                    <input type="text" class="form-control" id="RegID">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="mhadareciptNumber" class="form-label  fw-bold">Mhada Recipt
+                                        Number</label>
+                                    <input type="text" class="form-control" id="mhadareciptNumber">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="enrollmenttype" class="form-label  fw-bold">Enrollment Type</label>
+                                    <select id="enrollmenttype" class="form-select">
+                                        <option selected>All</option>
+                                        <option value="Domestic worker">Domestic Worker(Gharelu Kamgar)</option>
+                                        <option value="Mill worker">Mill worker</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="Millname" class="form-label  fw-bold">Mill name</label>
+                                    <input type="text" class="form-control" id="Millname">
+                                </div>
+
+                                <!-- Second Line (Mill Worker Name and Legal Hire Name) -->
+                                <div class="col-md-6">
+                                    <label for="millWorkerName" class="form-label  fw-bold">Mill Worker Name</label>
+                                    <input type="text" class="form-control" id="millWorkerName">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="legalHireName" class="form-label  fw-bold">Legal Hire Name- Fill this
+                                        only if
+                                        applicable</label>
+                                    <input type="text" class="form-control" id="legalHireName">
+                                </div>
+
+                                <!-- phone number -->
+                                <div class="col-md-6">
+                                    <label for="millWorkerName" class="form-label  fw-bold">Phone Number</label>
+                                    <input type="number" class="form-control" id="millWorkerName">
+                                </div>
+                                <!-- email id -->
+                                <div class="col-md-6">
+                                    <label for="millWorkerName" class="form-label  fw-bold">Email ID</label>
+                                    <input type="email" class="form-control" id="millWorkerName">
+                                </div>
+                                <!-- Third Line (Address) -->
+                                <div class="col-md-12">
+                                    <label for="address" class="form-label  fw-bold">Address</label>
+                                    <textarea class="form-control" id="address"></textarea>
+                                </div>
+
+                                <!-- Fourth Line (Aadhar Number and PAN Number) -->
+                                <div class="col-md-6">
+                                    <label for="aadharNumber" class="form-label  fw-bold">Aadhar Number</label>
+                                    <input type="text" class="form-control" id="aadharNumber">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="panNumber" class="form-label  fw-bold">PAN Number</label>
+                                    <input type="text" class="form-control" id="panNumber">
+                                </div>
+
+                                <!-- Fifth Line (ESIC NO and Gender) -->
+                                <div class="col-md-6">
+                                    <label for="esicNo" class="form-label  fw-bold">ESIC NO</label>
+                                    <input type="text" class="form-control" id="esicNo">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="gender" class="form-label fw-bold">Gender</label>
+                                    <select id="gender" class="form-select">
+                                        <option selected>Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sixth Line (Age and Retired/Resigned) -->
+                                <div class="col-md-6">
+                                    <label for="age" class="form-label  fw-bold">Age</label>
+                                    <input type="text" class="form-control" id="age">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="retiredResigned" class="form-label fw-bold">Retired / Resigned</label>
+                                    <select id="retiredResigned" class="form-select">
+                                        <option selected>Not Applicable</option>
+                                        <option value="Retired">Retired</option>
+                                        <option value="Resigned">Resigned</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="newregisfee" class="form-label  fw-bold">New Registration Fee</label>
+                                    <input type="number" class="form-control" id="newregisfee">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="penalty" class="form-label  fw-bold">Penalty</label>
+                                    <input type="number" class="form-control" id="age">
+                                </div>
+                                <!-- Seventh Line (REGS From and To) -->
+                                <div class="col-md-6">
+                                    <label for="regsFrom" class="form-label  fw-bold">Registration From</label>
+                                    <input type="date" class="form-control" id="regsFrom">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="regsTo" class="form-label  fw-bold">REGS To</label>
+                                    <input type="date" class="form-control" id="regsTo">
+                                </div>
+
+                                <!-- Eighth Line (Pending Amount, Pending From, and Pending Upto) -->
+                                <div class="col-md-4">
+                                    <label for="pendingAmount" class="form-label  fw-bold">Pending Amount</label>
+                                    <input type="text" class="form-control" id="pendingAmount">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="pendingFrom" class="form-label  fw-bold">Pending From</label>
+                                    <input type="date" class="form-control" id="pendingFrom">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="pendingUpto" class="form-label  fw-bold">Pending Upto</label>
+                                    <input type="date" class="form-control" id="pendingUpto">
+                                </div>
+
+                                <!-- Ninth Line (Donation and Office Fund) -->
+                                <div class="col-md-6">
+                                    <label for="donation" class="form-label  fw-bold">Donation</label>
+                                    <input type="text" class="form-control" id="donation">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="officeFund" class="form-label  fw-bold">Office Fund</label>
+                                    <input type="text" class="form-control" id="officeFund">
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="col-md-12 text-center mt-4">
+                                    <button type="submit" class="btn btn-primary "
+                                        style="background-color: #3276B1;">Submit</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

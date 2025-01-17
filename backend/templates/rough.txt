@@ -1,0 +1,14 @@
+//og
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user[0] }}</td> <!-- Reg. No. (Assumed to be the first column) -->
+                                <td>{{ user[2] }}</td> <!-- Phone Number (Assumed to be the third column) -->
+
+                                <td> <a href="{{url_for('view_member',membership_id=user[1])}}"></a>{{ user[1] }}</td>
+                                <!--Name (Assumed to be the second column)-->
+
+                                <td>{{ user[3] }}</td> <!-- Male/Female (Assumed to be the fourth column) -->
+                                <td>{{ user[4] }}</td> <!-- Date Registered (Assumed to be the fifth column) -->
+                                <td>{{ user[5] }}</td> <!-- Next Renewal Date (Assumed to be the sixth column) -->
+                            </tr>
+                            {% endfor %}

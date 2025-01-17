@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membership</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        .sidebar {
+            background-color: #F3AB06;
+            height: 100vh;
+            color: white;
+            padding-top: 20px;
+        }
+
+        .sidebar .nav-link {
+            color: white;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #b71c1c;
+            color: white;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #3B0909;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static',filename='logo.jpg') }}" alt="Logo" style="height: 40px;" class="me-2">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end gap-4" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-list text-white fs-5"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-envelope-fill text-white fs-5"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-person-fill text-white fs-5"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="text-center mb-4">
+                    <img src="" alt="Logo" class="img-fluid rounded-circle" style="max-width: 80px;">
+                    <h5>SHREE GANESH</h5>
+                    <p class="text-light">Online</p>
+                </div>
+                <div class="text-center mb-4">
+                    <p>Logged in since</p>
+                    <p>3:59pm, Saturday, 4th January 2025</p>
+                </div>
+                <nav class="nav flex-column">
+                    <a href="#" class="nav-link py-1">Dashboard</a>
+                    <a href="#" class="nav-link py-1">Change Password</a>
+                    <a href="#" class="nav-link py-1">User Accounts</a>
+                    <a href="#" class="nav-link py-1">Backup Database</a>
+                </nav>
+            </div>
+
+            <!-- form -->
+            <div class="col-md-10 mt-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center text-center">
+                        <h3 class="mb-0">Mr. {{ mill_worker_name }}</h3>
+                        <p class="mb-0 ms-auto">Reg. No.:{{ reg_no }}</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center d-flex justify-content-between flex-wrap gap-5 mb-2"> <button
+                                class="btn btn-primary" style="background-color: #3276B1;">PRINT</button>
+                            <button class="btn btn-primary" style="background-color: #3276B1;"
+                                onclick="window.location.href='/renew';">RENEW</button>
+                            <button class="btn btn-primary" style="background-color: #3276B1;"   onclick="window.location.href='/donation';">DONATION</button>
+                            <button class="btn btn-primary" style="background-color: #3276B1;"  onclick="window.location.href='/office-fund';">OFFICE FUND</button>
+                            <button class="btn btn-primary" style="background-color: #3276B1;">EDIT</button>
+                            <button class="btn btn-primary" style="background-color: #3276B1;" onclick="window.location.href='/';"  >CANCEL</button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mt-2">
+                                <p><strong>Enrollment Type:</strong> {{enrollment_type}}</p>
+                                <p><strong>Mhada Receipt No.:</strong> {{mhada_no}}</p>
+
+                                {% if mill_name %}
+                                <p><strong>Mill Name:</strong> {{mill_name}} </p>
+                                {% endif %}
+
+                                <p><strong>Phone Number:</strong> <a href="tel:+{{ phone_number }}">{{phone_number}}</a>
+                                </p>
+                                <p><strong>Address:</strong> {{address}}</p>
+                                <p><strong>Legal Hier Name:</strong>{{legal_hier_name}}</p>
+                                <p><strong>Email ID:</strong> {{email_id}}</p>
+                                <p><strong>Aadhar Card Number:</strong>{{aadhar_number}}</p>
+                                <p><strong>PAN Number:</strong> {{pan_number}}</p>
+                                <p><strong>ESIC Number:</strong> {{esic_number}}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Gender:</strong> {{gender}}</p>
+                                <p><strong>Age:</strong> {{age}}</p>
+                                <p><strong>Retired / Resigned:</strong> {{retired_resigned}}</p>
+                                <p><strong>New Registration Fee:</strong> {{reg_fee}}-</p>
+                                <p><strong>Pending Amount:</strong> Rs.{{pending_amt}}</p>
+                                <p><strong>Pending Penalty:</strong> Rs. {{pending_penalty}}</p>
+                                <p><strong>Pending From (Year):</strong> {{pending_From}}</p>
+                                <p><strong>Pending Upto (Year):</strong> {{pending_To}}</p>
+                                <p><strong>Donation while Registration:</strong> Rs. {{donation_amount}}</p>
+                                <p><strong>Office Fund while Registration:</strong> Rs. 0/-</p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <p>Registration from <strong>1st January 2012</strong> to <strong>31st December
+                                    2019</strong>.</p>
+                        </div>
+                        <div class="text-center">
+                            <button class="btn btn-danger">Delete Member</button>
+                            <button class="btn btn-warning">Add Family Member</button>
+                            <button class="btn btn-info">View Family</button>
+                            <button class="btn btn-success">View Paid Funds</button>
+                            <button class="btn btn-primary">View Donations</button>
+                            <button class="btn btn-secondary">View Renewals</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard UI</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            background-color: #F3AB06;
+            height: 100vh;
+            color: white;
+            padding-top: 20px;
+        }
+
+        .sidebar .nav-link {
+            color: white;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #b71c1c;
+            color: white;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #d32f2f;
+        }
+
+        .content {
+            margin-left: 280px;
+            /* Change this to a smaller value to move left */
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #F5F5F5;
+            color: black;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-left: -200px;
+        }
+
+        .header .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-box {
+            background-color: #FFFFFF;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            margin-left: -200px;
+            /* Move status section closer to the sidebar */
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #3B0909;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static',filename='logo.jpg') }}" alt="Logo" style="height: 40px;" class="me-2">
+                <span class="text-warning"></span>
+                <span class="text-white"></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end gap-4" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-envelope-fill text-white fs-2"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-person-fill text-white fs-2"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar p-0" style="width: 220px; min-width: 220px;">
+            <div class="text-center mb-4">
+                <img src="" alt="Logo" class="img-fluid rounded-circle" style="max-width: 80px;">
+                <h5>SHREE GANESH</h5>
+                <p class="text-light">Online</p>
+            </div>
+            <div class="text-center mb-4">
+                <p>Logged in since</p>
+                <p>3:59pm, Saturday, 4th January 2025</p>
+            </div>
+            <nav class="nav flex-column">
+                <a href="#" class="nav-link py-1">Dashboard</a>
+                <a href="#" class="nav-link py-1">Change Password</a>
+                <a href="#" class="nav-link py-1">User Accounts</a>
+                <a href="#" class="nav-link py-1">Backup Database</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content flex-grow-1 p-2">
+            <!-- Header -->
+            <div class="header">
+                <h4>STATUS</h4>
+                <div class="profile">
+                    <img src="https://via.placeholder.com/40" alt="User">
+                    <p class="fs-4">For Date: 2nd January 2025</p>
+                </div>
+            </div>
+
+            <!-- Status Section -->
+            <div class="status-box">
+                <p class="d-flex justify-content-between">
+                    Today's Total Earning:
+                    <span class="text-primary">Rs. 0/-</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    Today's Billed Earning:
+                    <span class="text-primary">Rs. 0/-</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    Logged in session:
+                    <span class="text-primary">Rs. 0/-</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    New Registrations Today:
+                    <span class="text-primary">Rs. 0/-</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    Renewals Today:
+                    <span class="text-primary">Rs. 0/-</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    Pending to Renew Today:
+                    <span class="text-primary">Rs. 0/-</span>
+                </p>
+            </div>
+
+            <!-- Summary Section -->
+            <div style="margin-left: -200px;">
+                <p class="d-flex justify-content-between">
+                    Total Number of New Registrations:
+                    <span class="text-center" style="margin-right: 450px;">3689</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    Total Number of Renewals:
+                    <span class="text-center" style="margin-right: 450px;">2392</span>
+                </p>
+                <p class="d-flex justify-content-between">
+                    Total Donations:
+                    <span class="text-center" style="margin-right: 450px;">5050</span>
+                </p>
+
+                <!-- Advanced Report Button -->
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary" onclick="window.location.href='/adv_report';">Advanced
+                        Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
