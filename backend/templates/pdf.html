@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Slip - {{ fetched_mill_worker_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            max-width: 200px;
+        }
+
+        .details {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .details p {
+            margin: 5px 0;
+        }
+
+        .amount-in-words {
+            font-weight: bold;
+        }
+
+        .signature {
+            margin-top: 30px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <img src="../logo/Logo_In_Slip.png" alt="Logo">
+        <h3>Registration Slip</h3>
+        <b>Receipt No.:</b> {{ reciept_no }}
+    </div>
+
+    <div class="details">
+        <p><strong>Registration ID:</strong> {{ fetched_reg_id }}</p>
+        <p><strong>Worker Name:</strong> {{ fetched_mill_worker_name }}</p>
+        <p><strong>Work Description:</strong> {{ work_description }}</p>
+        <p><strong>Phone Number:</strong> {{ phone_number }}</p>
+        <p><strong>Address:</strong> {{ address }}</p>
+        <p class="amount-in-words"><strong>Amount in Words:</strong> {{ amount_in_words }}</p>
+    </div>
+
+    <div class="signature">
+        <p>Received By: <strong>Admin Name</strong></p>
+        <p>Date: <strong>{{ "current date" }}</strong></p>
+    </div>
+</body>
+
+</html>

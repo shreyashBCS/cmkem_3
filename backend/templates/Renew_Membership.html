@@ -85,30 +85,31 @@
 
             <div class="col-md-9 main-content">
                 <div class=" d-flex justify-content-between">
-                    <h4>Membership Renewal of {{ name }}</h4>
-                    <h4>Reg. No. = {{ reg_id }}</h4>
+                    <h4>Membership Renewal of {{ member['mill_worker_name'] }}</h4>
+                    <h4>Reg. No. = {{ member['reg_id'] }}</h4>
                 </div>
 
                 <div class="card">
                     <div class="card-body">
                         <div class="row mb-4">
                             <div class="col-md-4">
-                                <p>Date Registered: 1st January 2012</p>
+                                <p>Date Registered: {{ member['reg_from_date'] }}</p>
                             </div>
                             <div class="col-md-4">
-                                <p>Last Renewed On: 31st December 2019</p>
+                                <p>Last Renewed On: {{ member['last_renewed_date'] }}</p>
                             </div>
                             <div class="col-md-4">
-                                <p class="warning-text">Expected Renewal Date: 31st December 2019</p>
+                                <p class="warning-text">Expected Renewal Date: {{ member['next_renewal_date']}}</p>
                                 <p class="warning-text">Delay in Renewal - Rs. 50/- penalty will be added to renewal
                                     fees.</p>
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ url_for('renew_membership') }}">
+                        <form method="POST" action="{{ url_for('renew_membership', membership_id=member['reg_id']) }}">
                             <div class="mb-3">
                                 <label class="form-label">Enter Renewal Fees</label>
-                                <input type="number" class="form-control" name="renewal_fees" required>
+                                <input type="number" class="form-control" name="renewal_fees"
+                                    placeholder="Enter renewal fees" required>
                             </div>
 
                             <h5>Next Renewal Cycle</h5>
@@ -116,35 +117,42 @@
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Next From Date</label>
-                                    <input type="date" class="form-control" name="next_from_date" required>
+                                    <input type="date" class="form-control" name="next_from_date"
+                                        placeholder="Select next from date" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Next To Date</label>
-                                    <input type="date" class="form-control" name="next_to_date" required>
+                                    <input type="date" class="form-control" name="next_to_date"
+                                        placeholder="Select next to date" required>
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Delay in Renewal</label>
-                                    <select class="form-select" name="delay_in_renewal">
-                                        <option>No</option>
-                                        <option>Yes</option>
+                                    <select class="form-select" name="delay_in_renewal" required>
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Renewal Penalty</label>
-                                    <input type="number" class="form-control" name="renewal_penalty" value="0" required>
+                                    <input type="number" class="form-control" name="renewal_penalty"
+                                        placeholder="Enter penalty amount" value="0" min="0" required>
                                 </div>
                             </div>
 
                             <div class="d-flex justify-content-center">
-                                <button type="submit" class="btn btn-primary me-2"
-                                    style="background-color: #3276B1;">Submit</button>
-                                <button type="button" class="btn btn-success"
-                                    style="background-color: #47A447;">Cancel</button>
+                                <button type="submit" class="btn btn-primary me-2" style="background-color: #3276B1;">
+                                    Submit
+                                </button>
+                                <button type="button" class="btn btn-success" style="background-color: #47A447;"
+                                    onclick="window.history.back();">
+                                    Cancel
+                                </button>
                             </div>
                         </form>
+
 
                     </div>
                 </div>

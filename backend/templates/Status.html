@@ -134,7 +134,7 @@
                 <h4>STATUS</h4>
                 <div class="profile">
                     <img src="https://via.placeholder.com/40" alt="User">
-                    <p class="fs-4">For Date: 2nd January 2025</p>
+                    <p class="fs-4">For Date: {{ formatted_datetime_now   }}</p>
                 </div>
             </div>
 
@@ -142,27 +142,27 @@
             <div class="status-box">
                 <p class="d-flex justify-content-between">
                     Today's Total Earning:
-                    <span class="text-primary">Rs. 0/-</span>
+                    <span class="text-primary">Rs. {{total_earning }}</span>
                 </p>
                 <p class="d-flex justify-content-between">
                     Today's Billed Earning:
-                    <span class="text-primary">Rs. 0/-</span>
+                    <span class="text-primary">Rs. {{ total_billed_earning }}</span>
                 </p>
                 <p class="d-flex justify-content-between">
                     Logged in session:
-                    <span class="text-primary">Rs. 0/-</span>
+                    <span class="text-primary">Rs. {{ fetched_session_count }}</span>
                 </p>
                 <p class="d-flex justify-content-between">
                     New Registrations Today:
-                    <span class="text-primary">Rs. 0/-</span>
+                    <span class="text-primary">Rs. {{ fetched_reg_count }}</span>
                 </p>
                 <p class="d-flex justify-content-between">
                     Renewals Today:
-                    <span class="text-primary">Rs. 0/-</span>
+                    <span class="text-primary">Rs. {{ fetched_reg_count}}</span>
                 </p>
                 <p class="d-flex justify-content-between">
                     Pending to Renew Today:
-                    <span class="text-primary">Rs. 0/-</span>
+                    <span class="text-primary">Rs. {{ fetched_pen_renewal_count }}</span>
                 </p>
             </div>
 
@@ -170,15 +170,15 @@
             <div style="margin-left: -200px;">
                 <p class="d-flex justify-content-between">
                     Total Number of New Registrations:
-                    <span class="text-center" style="margin-right: 450px;">3689</span>
+                    <span class="text-center" style="margin-right: 450px;">{{ fetched_total_reg_count }}</span>
                 </p>
                 <p class="d-flex justify-content-between">
-                    Total Number of Renewals:
+                    {{ fetched_total_renewal_count }}:
                     <span class="text-center" style="margin-right: 450px;">2392</span>
                 </p>
                 <p class="d-flex justify-content-between">
                     Total Donations:
-                    <span class="text-center" style="margin-right: 450px;">5050</span>
+                    <span class="text-center" style="margin-right: 450px;">{{ fetched_total_donation_count }}</span>
                 </p>
 
                 <!-- Advanced Report Button -->

@@ -47,8 +47,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark " style="background-color: #3B0909;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="logo.jpg" alt="Logo" style="height: 40px;" class="me-2">
-
+                <img src="{{ url_for('static',filename='logo.jpg') }}" alt="Logo" style="height: 40px;" class="me-2">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,10 +92,10 @@
                 <div class="header">
                     <h3>
                         Donation paying by
-                        <strong>Mr. Gajanan Maya Kurulkar</strong>
+                        <strong>{{ gender_prefix }} {{ mill_worker_name }}</strong>
                     </h3>
                     <p>
-                        <strong class="text-right">Reg. No. = 6</strong>
+                        <strong class="text-right">Reg. No. = {{ reg_id }}</strong>
                     </p>
                 </div>
                 <div class="form-section" style="background-color: #FFFFFF;">
