@@ -7,7 +7,6 @@
     <title>Membership</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
     <style>
         .sidebar {
             background-color: #F3AB06;
@@ -45,7 +44,6 @@
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse justify-content-end gap-4" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -70,7 +68,7 @@
 
     <div class="container-fluid">
         <div class="row">
-            <!-- sidebar -->
+            <!-- Sidebar -->
             <div class="col-md-2 sidebar">
                 <div class="text-center mb-4">
                     <img src="" alt="Logo" class="img-fluid rounded-circle" style="max-width: 80px;">
@@ -83,103 +81,117 @@
                 </div>
                 <nav class="nav flex-column">
                     <a href="#" class="nav-link py-1">Dashboard</a>
-                    <a href="#" onclick="window.location.href='/Change_Password'" class="nav-link py-1 ">Change
+                    <a href="#" onclick="window.location.href='/Change_Password'" class="nav-link py-1">Change
                         Password</a>
                     <a href="#" class="nav-link py-1">User Accounts</a>
                     <a href="#" id="downloadBtn" class="nav-link py-1">Backup Database</a>
                 </nav>
             </div>
 
-            <!-- form -->
+            <!-- Form -->
             <div class="col-md-10 mt-3">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center text-center">
-                        <h3 class="mb-0">Mr. {{ mill_worker_name }}</h3>
-                        <p class="mb-0 ms-auto">Reg. No.:{{ reg_id }}</p>
+                        <h3 class="mb-0">Mr. {{ member.mill_worker_name }}</h3>
+                        <p class="mb-0 ms-auto">Reg. No.: {{ member.reg_id }}</p>
                     </div>
                     <div class="card-body">
-                        <div class="text-center d-flex justify-content-between flex-wrap gap-5 mb-2"> <button
-                                class="btn btn-primary" style="background-color: #3276B1;"
-                                onclick="window.location.href='/generate_pdf/{{ reg_id }} '">PRINT</button>
+                        <div class="text-center d-flex justify-content-between flex-wrap gap-5 mb-2">
+                            <button class="btn btn-primary"
+                                onclick="window.location.href='{{ url_for('renewal_receipt', renewal_id=member.reg_id) }}'">
+                                PRINT
+                            </button>
 
-                            <button class="btn btn-primary" style="background-color: #3276B1;"
-                                onclick="window.location.href='/renew_membership/{{ reg_id }}';">RENEW</button>
 
+                            <button class="btn btn-primary"
+                                onclick="window.location.href='/renew_membership/{{ member.reg_id }}'">RENEW</button>
+                            <button class="btn btn-primary"
+                                onclick="window.location.href='/donation/{{ member.reg_id }}'">DONATION</button>
 
-                            <button class="btn btn-primary" style="background-color: #3276B1;"
-                                onclick="window.location.href='/donation/{{ reg_id }}';">DONATION</button>
+                            <button class="btn btn-primary"
+                                onclick="window.location.href='{{ url_for('office_fund', membership_id=member.reg_id) }}'">
+                                OFFICE FUND
+                            </button>
 
-                            <button class="btn btn-primary" style="background-color: #3276B1;"
-                                onclick="window.location.href='/office-fund';">OFFICE FUND</button>
-
-                            <button class="btn btn-primary" style="background-color: #3276B1;">EDIT</button>
-
-                            <button class="btn btn-primary" style="background-color: #3276B1;"
-                                onclick="window.location.href='/';">CANCEL</button>
+                            <button class="btn btn-primary">EDIT</button>
+                            <button class="btn btn-primary" onclick="window.location.href='/'">CANCEL</button>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mt-2">
-                                <p><strong>Enrollment Type:</strong> {{enrollment_type}}</p>
-                                <p><strong>Mhada Receipt No.:</strong> {{mhada_no}}</p>
-
-                                {% if mill_name %}
-                                <p><strong>Mill Name:</strong> {{mill_name}} </p>
-                                {% endif %}
-
-                                <p><strong>Phone Number:</strong> <a href="tel:+{{ phone_number }}">{{phone_number}}</a>
-                                </p>
-                                <p><strong>Address:</strong> {{address}}</p>
-                                <p><strong>Legal Hier Name:</strong>{{legal_hier_name}}</p>
-                                <p><strong>Email ID:</strong> {{email_id}}</p>
-                                <p><strong>Aadhar Card Number:</strong>{{aadhar_number}}</p>
-                                <p><strong>PAN Number:</strong> {{pan_number}}</p>
-                                <p><strong>ESIC Number:</strong> {{esic_number}}</p>
+                                <p><strong>Enrollment Type:</strong> {{ member.enrollment_type | default('N/A') }}</p>
+                                <p><strong>Mhada Receipt No.:</strong> {{ member.mhada_no | default('N/A') }}</p>
+                                <p><strong>Mill Name:</strong> {{ mill_name | default('N/A') }}</p>
+                                <p><strong>Phone Number:</strong> <a
+                                        href="tel:+{{ member.phone_number | default('') }}">{{ member.phone_number |
+                                        default('N/A') }}</a></p>
+                                <p><strong>Address:</strong> {{ member.address | default('N/A') }}</p>
+                                <p><strong>Legal Hier Name:</strong> {{ member.legal_hier_name | default('N/A') }}</p>
+                                <p><strong>Email ID:</strong> {{ member.email_id | default('N/A') }}</p>
+                                <p><strong>Aadhar Card Number:</strong> {{ member.aadhar_number | default('N/A') }}</p>
+                                <p><strong>PAN Number:</strong> {{ member.pan_number | default('N/A') }}</p>
+                                <p><strong>ESIC Number:</strong> {{ member.esic_number | default('N/A') }}</p>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Gender:</strong> {{gender}}</p>
-                                <p><strong>Age:</strong> {{age}}</p>
-                                <p><strong>Retired / Resigned:</strong> {{retired_resigned}}</p>
-                                <p><strong>New Registration Fee:</strong> {{reg_fee}}-</p>
-                                <p><strong>Pending Amount:</strong> Rs.{{pending_amt}}</p>
-                                <p><strong>Pending Penalty:</strong> Rs. {{pending_penalty}}</p>
-                                <p><strong>Pending From (Year):</strong> {{pending_From}}</p>
-                                <p><strong>Pending Upto (Year):</strong> {{pending_To}}</p>
-                                <p><strong>Donation while Registration:</strong> Rs. {{donation_amount}}</p>
+                                <p><strong>Gender:</strong> {{ member.gender | default('N/A') }}</p>
+                                <p><strong>Age:</strong> {{ member.age | default('N/A') }}</p>
+                                <p><strong>Retired / Resigned:</strong> {{ member.retired_resigned | default('N/A') }}
+                                </p>
+                                <p><strong>New Registration Fee:</strong> {{ member.reg_fee | default('N/A') }}</p>
+                                <p><strong>Pending Amount:</strong> Rs. {{ member.pending_amt | default('N/A') }}</p>
+                                <p><strong>Pending Penalty:</strong> Rs. {{ member.pending_penalty | default('N/A') }}
+                                </p>
+                                <p><strong>Pending From (Year):</strong> {{ member.pending_From | default('N/A') }}</p>
+                                <p><strong>Pending Upto (Year):</strong> {{ member.pending_To | default('N/A') }}</p>
+                                <p><strong>Donation while Registration:</strong> Rs. {{ member.donation_amount |
+                                    default('N/A') }}</p>
                                 <p><strong>Office Fund while Registration:</strong> Rs. 0/-</p>
                             </div>
                         </div>
                         <div class="text-center mt-3">
-                            <p>Registration from <strong>{{ reg_from_date }}</strong> to <strong>{{ next_renewal_date }}
-                                </strong>.</p>
+                            <p>Registration from <strong>{{ member.reg_from_date.strftime('%Y-%m-%d') | default('N/A')
+                                    }}</strong> to <strong>{{ member.next_renewal_date.strftime('%Y-%m-%d') |
+                                    default('N/A') }}</strong>.</p>
                         </div>
                         <div class="text-center">
-                            <form action="{{ url_for('delete_member', membership_id=reg_id) }}" method="POST"
+                            <form action="{{ url_for('delete_member', membership_id=member.reg_id) }}" method="POST"
+                                onsubmit="return confirm('Are you sure you want to delete this member?');"
                                 style="display: inline;">
                                 <button type="submit" class="btn btn-danger">Delete Member</button>
                             </form>
                             <button class="btn btn-warning"
-                                onclick="window.location.href='{{ url_for('add_family_member', membership_id=reg_id) }}';">
-                                Add Family Member
-                            </button>
+                                onclick="window.location.href='{{ url_for('add_family_member', membership_id=member.reg_id) }}'">Add
+                                Family Member</button>
                             <button class="btn btn-info"
-                                onclick="window.location.href='{{ url_for('view_family_member', membership_id=reg_id) }}';">
-                                View Family
-                            </button>
-                            <button class="btn btn-success"
-                                onclick="window.location.href='{{ url_for('view_paid_fund', membership_id=reg_id) }}';">
+                                onclick="window.location.href='{{ url_for('view_family_member', membership_id=member.reg_id) }}'">View
+                                Family</button>
+
+
+
+                            {% set member = member or {} %}
+                            {% if member and member.reg_id %}
+                            <a href="{{ url_for('view_paid_fund', membership_id=member.reg_id) }}"
+                                class="btn btn-success">
+                                View Paid Fund
+                            </a>
+                            {% else %}
+                            <button class="btn btn-success" disabled title="Member or registration ID is missing">
                                 View Paid Fund
                             </button>
-                            <button class="btn btn-primary"
-                                onclick="window.location.href='{{ url_for('view_donation', membership_id=reg_id) }}';">
+                            {% endif %}
+
+                            {% if member and member.reg_id %}
+                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}"
+                                class="btn btn-primary">
                                 View Donations
-                            </button>
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}"
+                                class="btn btn-primary">View Donations</a>
+                            {% endif %}
                             <button class="btn btn-secondary"
-                                onclick="window.location.href ='{{ url_for('view_renewals', membership_id=reg_id) }}'">
-                                View Renewals
-                            </button>
-
+                                onclick="window.location.href='{{ url_for('view_renewals', membership_id=member.reg_id) }}'">View
+                                Renewals</button>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -187,16 +199,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         document.getElementById("downloadBtn").onclick = function (event) {
-            event.preventDefault();  // Prevent the default link behavior
-            // Trigger the database backup and download
-            window.location.href = '/download_dump';  // This will trigger the backup route
+            event.preventDefault();
+            window.location.href = '/download_dump';
         }
     </script>
-
-
 </body>
 
 </html>

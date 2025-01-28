@@ -1,0 +1,183 @@
+
+//print receipt code
+def convert_num_to_words(num):
+    """Convert a number to words (basic implementation)."""
+    units = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+    teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+    tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+    if num == 0:
+        return "zero"
+    if num < 10:
+        return units[num]
+    if 10 <= num < 20:
+        return teens[num - 10]
+    if 20 <= num < 100:
+        return tens[num // 10] + (" " + units[num % 10] if num % 10 != 0 else "")
+    if 100 <= num < 1000:
+        return units[num // 100] + " hundred" + (" " + convert_num_to_words(num % 100) if num % 100 != 0 else "")
+    return "number too large"
+
+@app.route('/renewal_receipt', methods=['GET'])
+def renewal_receipt():
+    renewal_id = request.args.get('renewal_id')
+    if not renewal_id:
+        flash("Renewal ID is required.", "error")
+        return redirect(url_for('index'))
+
+    try:
+        cursor = mysql.connection.cursor()
+
+        # Fetch renewal details
+        cursor.execute("""
+            SELECT r.*, m.mill_worker_name, m.gender, m.address, m.phone_number, m.enrollment_type, mil.mill_name
+            FROM tbl_member_renewals r
+            JOIN tbl_member_registration m ON r.member_reg_id = m.reg_id
+            LEFT JOIN tbl_mills mil ON m.mill_name_id = mil.mill_id
+            WHERE r.renewal_id = %s
+        """, (renewal_id,))
+        renewal = cursor.fetchone()
+
+        if not renewal:
+            flash("Renewal not found.", "error")
+            return redirect(url_for('index'))
+
+        # Fetch receipt number
+        cursor.execute("SELECT rec_no FROM tbl_reciepts WHERE rec_id = %s", (renewal_id,))
+        receipt = cursor.fetchone()
+        receipt_no = receipt['rec_no'] if receipt else renewal_id
+
+        # Fetch user details (renewed by)
+        cursor.execute("SELECT fname, lname FROM cm_users WHERE cm_user_id = %s", (renewal['renewed_by'],))
+        user = cursor.fetchone()
+
+        # Prepare data for the template
+        data = {
+            'receipt_no': receipt_no,
+            'member_reg_id': renewal['member_reg_id'],
+            'mill_worker_name': renewal['mill_worker_name'],
+            'gender_prefix': "Mr." if renewal['gender'] == 'male' else "Mrs.",
+            'enrollment_type': renewal['enrollment_type'],
+            'mill_name': renewal['mill_name'],
+            'address': renewal['address'] or 'Address Unavailable',
+            'phone_number': renewal['phone_number'] or 'Not available',
+            'renewal_fees': renewal['renewal_fees'],
+            'delay_penalty': renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0,
+            'date_renewed': renewal['date_renewed'],
+            'next_from_date': renewal['nextFrom_date'],
+            'next_to_date': renewal['nextTo_date'],
+            'renewed_by': f"{user['fname']} {user['lname']}" if user else 'Unknown',
+            'amount_in_words': convert_num_to_words(int(renewal['renewal_fees']) + int(renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0))
+        }
+
+    except Exception as e:
+        flash(f"An error occurred: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+
+    return render_template('renewal_receipt.html', **data)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+    //donation and view donation
+    from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_mysqldb import MySQL
+import time
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+# MySQL configuration
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = 'your_database_name'
+
+mysql = MySQL(app)
+
+# Helper function to sanitize input
+def test_input(data):
+    return data.strip()
+
+@app.route('/donation/<int:membership_id>', methods=['GET', 'POST'])
+def donation(membership_id):
+    """Handle donations for a specific member."""
+    try:
+        cursor = mysql.connection.cursor()
+
+        if request.method == 'POST':
+            # Process form submission
+            donation_amount = test_input(request.form['txtDonation'])
+            logged_user_id = 'logged_user_id'  # Replace with actual logged-in user ID
+
+            # Start transaction
+            cursor.execute("START TRANSACTION")
+
+            # Insert donation record
+            donation_id = f"doid_{int(time.time())}"
+            cursor.execute("""
+                INSERT INTO tbl_donation (
+                    donation_id, member_reg_id, donation_amount, payment_accepted_by, datetime_payment_done
+                ) VALUES (%s, %s, %s, %s, NOW() + INTERVAL 630 MINUTE)
+            """, (donation_id, membership_id, donation_amount, logged_user_id))
+
+            # Generate receipt
+            cursor.execute("SELECT MAX(rec_no) AS last_receipt FROM tbl_reciepts")
+            last_receipt = cursor.fetchone()['last_receipt'] or 0
+            new_receipt = last_receipt + 1
+
+            cursor.execute("""
+                INSERT INTO tbl_reciepts (rec_no, rec_type, rec_id)
+                VALUES (%s, %s, %s)
+            """, (new_receipt, 'donation', donation_id))
+
+            # Commit transaction
+            mysql.connection.commit()
+            flash("Donation added successfully!", "success")
+            return redirect(url_for('view_donation', membership_id=membership_id))
+
+        # Fetch member details for GET request
+        cursor.execute("SELECT reg_id, mill_worker_name, gender FROM tbl_member_registration WHERE reg_id = %s", (membership_id,))
+        member = cursor.fetchone()
+
+        if not member:
+            flash("Member not found.", "error")
+            return redirect(url_for('index'))
+
+        # Determine gender prefix
+        gender_prefix = "Mr." if member['gender'] == 'male' else "Mrs."
+
+        return render_template('donation.html', gender_prefix=gender_prefix, member=member, membership_id=membership_id)
+
+    except Exception as e:
+        # Rollback transaction in case of error
+        mysql.connection.rollback()
+        flash(f"An error occurred: {e}", "error")
+        return redirect(url_for('donation', membership_id=membership_id))
+
+    finally:
+        cursor.close()
+
+@app.route('/view_donation/<int:membership_id>')
+def view_donation(membership_id):
+    """View donations for a specific member."""
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM tbl_donation WHERE member_reg_id = %s", (membership_id,))
+        donations = cursor.fetchall()
+        return render_template('view_donation.html', donations=donations, membership_id=membership_id)
+    except Exception as e:
+        flash(f"An error occurred: {e}", "error")
+        return redirect(url_for('index'))
+    finally:
+        cursor.close()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)

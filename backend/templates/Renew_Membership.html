@@ -84,28 +84,31 @@
             </div>
 
             <div class="col-md-9 main-content">
-                <div class=" d-flex justify-content-between">
-                    <h4>Membership Renewal of {{ member['mill_worker_name'] }}</h4>
-                    <h4>Reg. No. = {{ member['reg_id'] }}</h4>
+                <div class="d-flex justify-content-between">
+                    <h4>Membership Renewal of {{ member.mill_worker_name }}</h4>
+                    <h4>Reg. No. = {{ member.reg_id }}</h4>
                 </div>
 
                 <div class="card">
                     <div class="card-body">
                         <div class="row mb-4">
                             <div class="col-md-4">
-                                <p>Date Registered: {{ member['reg_from_date'] }}</p>
+                                <p>Date Registered: {{ member.reg_from_date.strftime('%Y-%m-%d') | default('N/A') }}</p>
                             </div>
                             <div class="col-md-4">
-                                <p>Last Renewed On: {{ member['last_renewed_date'] }}</p>
+                                <p>Last Renewed On: {{ member.last_renewed_date.strftime('%Y-%m-%d') | default('N/A') }}
+                                </p>
                             </div>
                             <div class="col-md-4">
-                                <p class="warning-text">Expected Renewal Date: {{ member['next_renewal_date']}}</p>
+                                <p class="warning-text">Expected Renewal Date: {{
+                                    member.next_renewal_date.strftime('%Y-%m-%d') | default('N/A') }}</p>
                                 <p class="warning-text">Delay in Renewal - Rs. 50/- penalty will be added to renewal
                                     fees.</p>
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ url_for('renew_membership', membership_id=member['reg_id']) }}">
+                        <form method="POST" action="{{ url_for('renew_membership', membership_id=member.reg_id) }}"
+                            onsubmit="return validateForm()">
                             <div class="mb-3">
                                 <label class="form-label">Enter Renewal Fees</label>
                                 <input type="number" class="form-control" name="renewal_fees"
@@ -143,17 +146,14 @@
                             </div>
 
                             <div class="d-flex justify-content-center">
-                                <button type="submit" class="btn btn-primary me-2" style="background-color: #3276B1;">
-                                    Submit
-                                </button>
+                                <form action="{{ url_for('view_renewals',membership_id=member.reg_id)}}" method="POST">
+                                <button type="submit" class="btn btn-primary me-2"
+                                    style="background-color: #3276B1;">Submit</button>
+                                </form>
                                 <button type="button" class="btn btn-success" style="background-color: #47A447;"
-                                    onclick="window.history.back();">
-                                    Cancel
-                                </button>
+                                    onclick="window.history.back();">Cancel</button>
                             </div>
                         </form>
-
-
                     </div>
                 </div>
             </div>
@@ -161,6 +161,26 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function validateForm() {
+            const renewalFees = document.querySelector('input[name="renewal_fees"]').value;
+            const nextFromDate = document.querySelector('input[name="next_from_date"]').value;
+            const nextToDate = document.querySelector('input[name="next_to_date"]').value;
+            const renewalPenalty = document.querySelector('input[name="renewal_penalty"]').value;
+
+            if (!renewalFees || !nextFromDate || !nextToDate || !renewalPenalty) {
+                alert('Please fill out all fields.');
+                return false;
+            }
+
+            if (parseFloat(renewalPenalty) < 0) {
+                alert('Renewal penalty cannot be negative.');
+                return false;
+            }
+
+            return true;
+        }
+    </script>
 </body>
 
 </html>

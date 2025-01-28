@@ -279,17 +279,15 @@
 
                             {% for user in users %}
                             <tr>
-                                <td>{{ user[0] }}</td> <!-- Reg. No. (Assumed to be the first column) -->
+                                <td>{{ user.reg_id }}</td> <!-- Reg. No. -->
                                 <td>
-                                    <a href="{{ url_for('view_member', reg_id=user[0]) }}">{{ user[2] }}</a>
+                                    <a href="{{ url_for('view_member', reg_id=user.reg_id) }}">{{ user.mill_worker_name
+                                        }}</a>
                                 </td>
-                                <td>{{ user[1] }}</td> <!-- Phone Number (Assumed to be the third column) -->
-
-                                <!-- Name (Assumed to be the second column, now clickable) -->
-
-                                <td>{{ user[3] }}</td> <!-- Male/Female (Assumed to be the fourth column) -->
-                                <td>{{ user[4] }}</td> <!-- Date Registered (Assumed to be the fifth column) -->
-                                <td>{{ user[5] }}</td> <!-- Next Renewal Date (Assumed to be the sixth column) -->
+                                <td>{{ user.phone_number }}</td> <!-- Phone Number -->
+                                <td>{{ user.gender }}</td> <!-- Gender -->
+                                <td>{{ user.datetime_created }}</td> <!-- Date Registered -->
+                                <td>{{ user.next_renewal_date }}</td> <!-- Next Renewal Date -->
                             </tr>
                             {% endfor %}
 
@@ -300,8 +298,8 @@
 
                 <!------- pagination -------->
                 <!-- Pagination -->
-                <nav aria-label="Page navigation ">
-                    <ul class="pagination justify-content-center mt-3 ">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mt-3">
                         {% if page > 1 %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
@@ -312,12 +310,13 @@
                         </li>
                         {% endif %}
 
-                        <!-- Render only visible pages -->
+                        {% if start_page and end_page %}
                         {% for p in range(start_page, end_page + 1) %}
                         <li class="page-item {% if p == page %}active{% endif %}">
                             <a class="page-link" href="?page={{ p }}">{{ p }}</a>
                         </li>
                         {% endfor %}
+                        {% endif %}
 
                         {% if page < total_pages %} <li class="page-item">
                             <a class="page-link" href="?page={{ page + 1 }}">Next</a>

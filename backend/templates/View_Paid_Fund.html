@@ -4,51 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Table</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <title>VIEW PAID FUND</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8e8c1;
+        }
 
-    <!DOCTYPE html>
-    <html lang="en">
+        .sidebar {
+            background-color: #ffa500;
+            padding: 20px;
+            height: 100vh;
+        }
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>VIEW PAID FUND </title>
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-        <style>
-            body {
-                background-color: #f8e8c1;
-            }
+        .content {
+            padding: 20px;
+        }
 
-            .sidebar {
-                background-color: #ffa500;
-                padding: 20px;
-                height: 100vh;
-            }
-
-            .content {
-                padding: 20px;
-            }
-
-            .table-container {
-                background-color: #fff;
-                padding: 20px;
-                border-radius: 5px;
-            }
-        </style>
-    </head>
+        .table-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
 
 <body>
-
-
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #3B0909;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="{{ url_for('static',filename='logo.jpg') }}" alt="Logo" style="height: 40px;" class="me-2">
+                <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="height: 40px;" class="me-2">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,9 +43,6 @@
 
             <div class="collapse navbar-collapse justify-content-end gap-4" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-
-                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <i class="bi bi-envelope-fill text-white fs-2"></i>
@@ -77,15 +60,19 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-2 sidebar">
-                <div class="text-center"> <img src="ganesh.jpg" alt="SHREE GANESH" class="img-fluid rounded-circle">
-                    <h3>SHREE GANESH</h3> <span class="badge badge-success">Online</span>
+                <div class="text-center">
+                    <img src="{{ url_for('static', filename='ganesh.jpg') }}" alt="SHREE GANESH"
+                        class="img-fluid rounded-circle">
+                    <h3>SHREE GANESH</h3>
+                    <span class="badge badge-success">Online</span>
                     <p>Logged in since<br>3:11pm, Saturday, 11th January 2025</p>
                 </div>
             </div>
             <div class="col-md-9 content">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2>Office  Fund paid by  <strong>Mr. Mahendra Shivaji Aaroskar</strong></h2> <button
-                        class="btn btn-success">Back</button>
+                    <h2>Office Fund paid by <strong>{{ gender_prefix }} {{ member.mill_worker_name }}</strong></h2>
+                    <a href="{{ url_for('member_detail', membership_id=membership_id) }}"
+                        class="btn btn-success">Back</a>
                 </div>
                 <div class="table-container">
                     <div class="table-responsive">
@@ -97,20 +84,38 @@
                                     <th>Paid On</th>
                                     <th>Received By</th>
                                     <th>Receipt</th>
-                                    <th>Action </th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% if paid_funds %}
+                                {% for fund in paid_funds %}
                                 <tr>
-                                    <td colspan="7" class="text-center">No data available in table</td>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ fund.fund_amount }}</td>
+                                    <td>{{ fund.datetime_payment_done.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ fund.payment_accepted_by_name }}</td>
+                                    <td><a href="{{ url_for('print_office_fund', office_fund_id=fund.office_fund_id) }}"
+                                            class="btn btn-warning">Print</a></td>
+                                    <td><a href="{{ url_for('delete_office_fund', office_fund_id=fund.office_fund_id, member_reg_id=fund.member_reg_id) }}"
+                                            class="btn btn-danger">Delete</a></td>
                                 </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No data available in table</td>
+                                </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <div>Showing 0 to 0 of 0 entries</div>
-                        <div> <button class="btn btn-light" disabled>Previous</button> <button class="btn btn-light"
-                                disabled>Next</button> </div>
+                        <div>Showing {{ paid_funds|length }} to {{ paid_funds|length }} of {{ paid_funds|length }}
+                            entries</div>
+                        <div>
+                            <button class="btn btn-light" disabled>Previous</button>
+                            <button class="btn btn-light" disabled>Next</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,7 +127,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 
 </html>

@@ -88,6 +88,7 @@
                                     <th>Next Renewal From</th>
                                     <th>Next Renewal Upto</th>
                                     <th>Receipt</th>
+                                    <th>Delete</th>
                                     {% if user_type == 'd' %}
                                     <th>Actions</th>
                                     {% endif %}
@@ -110,12 +111,16 @@
                                         <a href="{{ url_for('print_renewal', renewal_id=renewal.renewal_id) }}"
                                             class="btn btn-warning">Print</a>
                                     </td>
-                                    {% if user_type == 'd' %}
                                     <td>
-                                        <a href="{{ url_for('delete_renewal', renewal_id=renewal.renewal_id, membership_id=renewal.member_reg_id) }}"
-                                            class="btn btn-danger">Delete</a>
+                                    <td>
+                                        <form
+                                            action="{{ url_for('delete_member', membership_id=renewal.member_reg_id) }}"
+                                            method="POST" style="display: inline;">
+                                            <button type="submit" class="btn btn-danger"
+                                                onclick="return confirm('Are you sure you want to delete this renewal?');">Delete</button>
+                                        </form>
                                     </td>
-                                    {% endif %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                                 {% else %}
