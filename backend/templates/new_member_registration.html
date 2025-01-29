@@ -98,11 +98,11 @@
                     <!-- Registration Form -->
                     <div class="card">
                         <div class="card-body">
-                            <form class="row g-3" method="post" action="{{ url_for('new_member_registration') }}">
+                            <form class="row g-3" method="POST" action="{{ url_for('new_member_registration') }}">
                                 <!-- First Line (4 fields in one line) -->
                                 <div class="col-md-3">
                                     <label for="RegID" class="form-label fw-bold">REG ID</label>
-                                    <input type="text" class="form-control" id="RegID" name="txtReg_id">
+                                    <input type="text" class="form-control" id="RegID" name="txtReg_id" required>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="mhadareciptNumber" class="form-label fw-bold">Mhada Receipt
@@ -130,7 +130,7 @@
                                 <div class="col-md-6">
                                     <label for="millWorkerName" class="form-label fw-bold">Mill Worker Name</label>
                                     <input type="text" class="form-control" id="millWorkerName"
-                                        name="txtMillWorkerName">
+                                        name="txtMillWorkerName" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="legalHireName" class="form-label fw-bold">Legal Hire Name- Fill this

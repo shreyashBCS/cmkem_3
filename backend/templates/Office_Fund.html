@@ -107,16 +107,18 @@
                 <div class="form-section" style="background-color: #FFFFFF;">
 
                     <!-- Form -->
-                    <form>
+                    <form method="POST" action="{{ url_for('office_fund', membership_id=membership_id) }}">
                         <div class="mb-3">
                             <label for="donationAmount" class="form-label">Enter Donation Amount</label>
-                            <input type="number" class="form-control" id="donationAmount" placeholder="Enter amount" />
+                            <input type="number" class="form-control" id="donationAmount" name="txtOfficeFund"
+                                placeholder="Enter amount" required />
                         </div>
                         <div class="mt-4 d-flex gap-2 justify-content-center">
                             <button type="submit" class="btn btn-primary">Submit</button>
                             <button type="reset" class="btn btn-secondary">Cancel</button>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>

@@ -4,12 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <title>Donation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            background-color: #F3AB06;
+            height: 100vh;
+            color: white;
+            padding-top: 20px;
+        }
+
+        .sidebar .nav-link {
+            color: white;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #b71c1c;
+            color: white;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #d32f2f;
+        }
+
+        .content-wrapper {
+            background-color: #f8e6b3;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .donation-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 
 <body>
-
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #3B0909;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
@@ -22,62 +60,76 @@
             <div class="collapse navbar-collapse justify-content-end gap-4" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-list text-white fs-5"></i>
-                        </a>
+                        <a class="nav-link" href="#"><i class="bi bi-list text-white fs-5"></i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-envelope-fill text-white fs-5"></i>
-                        </a>
+                        <a class="nav-link" href="#"><i class="bi bi-envelope-fill text-white fs-5"></i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-person-fill text-white fs-5"></i>
-                        </a>
+                        <a class="nav-link" href="#"><i class="bi bi-person-fill text-white fs-5"></i></a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div id="page-wrapper">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-lg-12">
-                <h3 class="page-header">
-                    Donation paying by <b>{{ gender_prefix }} {{ member.mill_worker_name }}</b>
-                    <span style="float:right;">Reg. No. = {{ membership_id }}</span>
-                </h3>
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar text-center p-3">
+                <img src="{{ url_for('static', filename='profile.jpg') }}" alt="Logo" class="img-fluid rounded-circle"
+                    style="max-width: 80px;">
+                <h5>SHREE GANESH</h5>
+                <p class="text-light">🟢 Online</p>
+                <p>Logged in since</p>
+                <p>8:36pm, Tuesday, 28th January 2025</p>
+                <nav class="nav flex-column">
+                    <a href="#" class="nav-link py-1">Dashboard</a>
+                    <a href="#" onclick="window.location.href='/Change_Password'" class="nav-link py-1">Change
+                        Password</a>
+                    <a href="#" class="nav-link py-1">User Accounts</a>
+                    <a href="#" id="downloadBtn" class="nav-link py-1">Backup Database</a>
+                </nav>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <form role="form" id="donation_form" name="donation_form" method="POST" autocomplete="off">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label>Enter Donation Amount</label>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 content-wrapper">
+                <div class="row">
+                    <div class="col-12">
+                        <h3 class="page-header pb-3 border-bottom">
+                            Donation paying by <b>{{ gender_prefix }} {{ member.mill_worker_name }}</b>
+                            <span class="float-end">Reg. No. = {{ membership_id }}</span>
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-md-12">
+                        <div class="donation-form">
+                            <form role="form" id="donation_form" name="donation_form" method="POST" autocomplete="off">
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Enter Donation Amount</strong></label>
                                     <input class="form-control" type="text" id="txtDonation" name="txtDonation" value=""
                                         maxlength="10" pattern="[0-9]{1,10}" title="Please enter numbers only" required>
                                     <input type="hidden" name="txtMembershipID" id="txtMembershipID"
                                         value="{{ membership_id }}">
                                 </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <center>
+                                <div class="text-center">
                                     <button type="submit" name="submit_Donation" id="submit_Donation"
                                         class="btn btn-primary">Submit</button>
                                     <a href="{{ url_for('view_donation', membership_id=membership_id) }}"
                                         class="btn btn-success">Cancel</a>
-                                </center>
-                            </div>
-                        </form>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

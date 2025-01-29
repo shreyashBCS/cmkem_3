@@ -108,10 +108,10 @@
                             <button class="btn btn-primary"
                                 onclick="window.location.href='/donation/{{ member.reg_id }}'">DONATION</button>
 
-                            <button class="btn btn-primary"
-                                onclick="window.location.href='{{ url_for('office_fund', membership_id=member.reg_id) }}'">
-                                OFFICE FUND
-                            </button>
+                            <form action="{{ url_for('office_fund', membership_id=member.reg_id) }}" method="POST">
+                                <button type="submit" class="btn btn-primary">OFFICE FUND</button>
+                            </form>
+
 
                             <button class="btn btn-primary">EDIT</button>
                             <button class="btn btn-primary" onclick="window.location.href='/'">CANCEL</button>
@@ -179,15 +179,10 @@
                             </button>
                             {% endif %}
 
-                            {% if member and member.reg_id %}
-                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}"
-                                class="btn btn-primary">
+                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}" class="btn btn-primary">
                                 View Donations
                             </a>
-                            {% else %}
-                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}"
-                                class="btn btn-primary">View Donations</a>
-                            {% endif %}
+                            
                             <button class="btn btn-secondary"
                                 onclick="window.location.href='{{ url_for('view_renewals', membership_id=member.reg_id) }}'">View
                                 Renewals</button>

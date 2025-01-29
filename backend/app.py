@@ -75,7 +75,7 @@ def new_member_registration():
     """Handle new member registration."""
     if request.method == 'GET':
         try:
-            cursor = mysql.connection.cursor()
+            cursor = mysql.connection.cursor()  # Assumes mysql.connection is properly initialized
             cursor.execute("SELECT mill_id, mill_name FROM tbl_mills ORDER BY mill_name ASC")
             mill_names = cursor.fetchall()
             return render_template('new_member_registration.html', mill_names=mill_names)
@@ -86,34 +86,33 @@ def new_member_registration():
             cursor.close()
 
     elif request.method == 'POST':
-        # Debugging: Print the entire form data
-        print(request.form)
+        form_data = request.form.to_dict()  # Convert ImmutableMultiDict to regular dict
 
         # Extract form data
-        reg_id = request.form.get('txtReg_id')
-        mhada_no = request.form.get('txtMhadaNo')
-        enrollment_type = request.form.get('select_enrollment_type')
-        mill_name_id = request.form.get('select_mill_name', '')
-        mill_worker_name = request.form.get('txtMillWorkerName')
-        legal_hier_name = request.form.get('txtLegalHierName', '')
-        phone_number = request.form.get('txtPhoneNumber')
-        email = request.form.get('txtEmail', '')
-        address = request.form.get('txtAddress', '')
-        aadhar_number = request.form.get('txtAadharNumber', '')
-        pan_number = request.form.get('txtPANNumber', '')
-        esic_number = request.form.get('txtESICNumber', '')
-        gender = request.form.get('select_gender')
-        age = request.form.get('txtAge')
-        retired_resigned = request.form.get('select_retired_resigned')
-        new_reg_fees = request.form.get('txtNewRegFees')
-        from_date = request.form.get('txtFromDate')
-        to_date = request.form.get('txtToDate')
-        pending_amt = request.form.get('txtPendingAmt', '0')
-        penalty = request.form.get('txtPenalty', '0')
-        pending_from = request.form.get('txtPendingFrom', '2012')
-        pending_to = request.form.get('txtPendingTo', '')
-        donation = request.form.get('txtDonation', '0')
-        office_fund = request.form.get('txtOfficeFund', '0')
+        reg_id = form_data.get('txtReg_id')
+        mhada_no = form_data.get('txtMhadaNo')
+        enrollment_type = form_data.get('select_enrollment_type')
+        mill_name_id = form_data.get('select_mill_name', '')
+        mill_worker_name = form_data.get('txtMillWorkerName')
+        legal_hier_name = form_data.get('txtLegalHierName', '')
+        phone_number = form_data.get('txtPhoneNumber')
+        email = form_data.get('txtEmail', '')
+        address = form_data.get('txtAddress', '')
+        aadhar_number = form_data.get('txtAadharNumber', '')
+        pan_number = form_data.get('txtPANNumber', '')
+        esic_number = form_data.get('txtESICNumber', '')
+        gender = form_data.get('select_gender')
+        age = form_data.get('txtAge')
+        retired_resigned = form_data.get('select_retired_resigned')
+        new_reg_fees = form_data.get('txtNewRegFees')
+        from_date = form_data.get('txtFromDate')
+        to_date = form_data.get('txtToDate')
+        pending_amt = form_data.get('txtPendingAmt', '0')
+        penalty = form_data.get('txtPenalty', '0')
+        pending_from = form_data.get('txtPendingFrom', '2012')
+        pending_to = form_data.get('txtPendingTo', '')
+        donation = form_data.get('txtDonation', '0')
+        office_fund = form_data.get('txtOfficeFund', '0')
 
         # Validate required fields
         required_fields = {
@@ -131,7 +130,7 @@ def new_member_registration():
                 flash(f"{field} is required.", "error")
                 return redirect(url_for('new_member_registration'))
 
-        # Validate numeric fields
+        # Validate numeric fields (convert to float where applicable)
         numeric_fields = {
             "Age": age,
             "New Registration Fees": new_reg_fees,
@@ -141,7 +140,7 @@ def new_member_registration():
             "Office Fund": office_fund,
         }
         for field, value in numeric_fields.items():
-            if value and not value.isdigit():
+            if value and not value.replace('.', '', 1).isdigit():  # Allow decimal numbers as well
                 flash(f"{field} must be a valid number.", "error")
                 return redirect(url_for('new_member_registration'))
 
@@ -667,8 +666,8 @@ def view_paid_fund():
         if 'cursor' in locals():
             cursor.close()
 
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
 @app.route('/view_donation/<int:membership_id>')
 def view_donation(membership_id):
     """View donations made by a specific member."""
@@ -681,20 +680,26 @@ def view_donation(membership_id):
 
         if not member:
             flash("Member not found.", "error")
+            print(f"Member with reg_id {membership_id} not found.")  # Debugging
             return redirect(url_for('index'))
 
         # Determine gender prefix
         gender_prefix = "Mr." if member['gender'] == 'male' else "Mrs."
 
-        # Fetch donations
+        # Fetch donations for the specific member
         cursor.execute("""
-            SELECT d.*, u.fname, u.lname 
+            SELECT d.donation_id, d.donation_amount, d.payment_accepted_by, d.datetime_payment_done, 
+                   u.fname, u.lname
             FROM tbl_donation d
             JOIN cm_users u ON d.payment_accepted_by = u.cm_user_id
             WHERE d.member_reg_id = %s 
             ORDER BY d.datetime_payment_done ASC
         """, (membership_id,))
         donations = cursor.fetchall()
+
+        # Log the donations found (or not)
+        if not donations:
+            print(f"No donations found for member with reg_id {membership_id}")  # Debugging
 
         return render_template(
             'View_Donation.html',
@@ -706,11 +711,13 @@ def view_donation(membership_id):
 
     except Exception as e:
         flash(f"An error occurred: {e}", "error")
+        print(f"Error occurred: {e}")  # Debugging
         return redirect(url_for('index'))
 
     finally:
         if 'cursor' in locals():
             cursor.close()
+
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -887,36 +894,27 @@ def change_password():
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 @app.route('/office_fund/<int:membership_id>', methods=['GET', 'POST'])
 def office_fund(membership_id):
-    """Handle office fund submissions for a specific member."""
     try:
         cursor = mysql.connection.cursor()
 
         if request.method == 'POST':
-            # Handle form submission (POST request)
             office_fund_amount = request.form.get('txtOfficeFund', '').strip()
-            
-            # Validate the input
+
             if not office_fund_amount or not office_fund_amount.isdigit():
                 flash("Invalid fund amount. Please enter a valid number.", "error")
-                return redirect(url_for('Office_Fund', membership_id=membership_id))
+                return redirect(url_for('office_fund', membership_id=membership_id))
 
-            office_fund_amount = float(office_fund_amount)  # Convert to numeric value
+            office_fund_amount = float(office_fund_amount)
             logged_user_id = 1  # Replace with actual logged-in user ID
 
-            # Start transaction
             cursor.execute("START TRANSACTION")
 
-            # Generate unique office_fund_id
             office_fund_id = f"ofid_{int(time.time())}"
-
-            # Insert office fund record
             cursor.execute("""
-                INSERT INTO tbl_office_fund (
-                    office_fund_id, member_reg_id, fund_amount, payment_accepted_by, datetime_payment_done
-                ) VALUES (%s, %s, %s, %s, NOW() + INTERVAL 630 MINUTE)
+                INSERT INTO tbl_office_fund (office_fund_id, member_reg_id, fund_amount, payment_accepted_by, datetime_payment_done)
+                VALUES (%s, %s, %s, %s, NOW() + INTERVAL 630 MINUTE)
             """, (office_fund_id, membership_id, office_fund_amount, logged_user_id))
 
-            # Generate receipt
             cursor.execute("SELECT MAX(rec_no) AS last_receipt FROM tbl_reciepts")
             last_receipt = cursor.fetchone()['last_receipt'] or 0
             new_receipt = last_receipt + 1
@@ -926,12 +924,11 @@ def office_fund(membership_id):
                 VALUES (%s, %s, %s)
             """, (new_receipt, 'office_fund', office_fund_id))
 
-            # Commit transaction
             mysql.connection.commit()
-            flash("Office fund added successfully!", "success")
-            return redirect(url_for('view_paid_funds', membership_id=membership_id))
 
-        # Fetch member details for GET request
+            flash("Office fund submitted successfully!", "success")  # ✅ Success message
+            return redirect(url_for('office_fund', membership_id=membership_id))
+
         cursor.execute("SELECT reg_id, mill_worker_name, gender FROM tbl_member_registration WHERE reg_id = %s", (membership_id,))
         member = cursor.fetchone()
 
@@ -939,19 +936,19 @@ def office_fund(membership_id):
             flash("Member not found.", "error")
             return redirect(url_for('index'))
 
-        # Determine gender prefix
         gender_prefix = "Mr." if member['gender'] == 'male' else "Mrs."
 
         return render_template('Office_Fund.html', gender_prefix=gender_prefix, member=member, membership_id=membership_id)
 
     except Exception as e:
-        # Rollback transaction in case of error
         mysql.connection.rollback()
         flash(f"An error occurred: {e}", "error")
         return redirect(url_for('office_fund', membership_id=membership_id))
 
     finally:
         cursor.close()
+
+
 
 @app.route('/logout')
 def logout():
