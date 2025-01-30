@@ -11,6 +11,7 @@ import uuid
 import logging
 import time
 
+
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
@@ -126,7 +127,7 @@ def new_member_registration():
             "To Date": to_date,
         }
         for field, value in required_fields.items():
-            if not value:
+            if not value.strip():
                 flash(f"{field} is required.", "error")
                 return redirect(url_for('new_member_registration'))
 
@@ -169,11 +170,12 @@ def new_member_registration():
                     donation_fee, office_fund, reg_from_date, datetime_created, created_by
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s)
             """
+            # Assuming `1` is the logged-in user ID for now; replace with actual user ID
             values = (
                 reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name,
                 phone_number, email, address, aadhar_number, pan_number, esic_number, gender, age,
                 retired_resigned, new_reg_fees, pending_amt, penalty, pending_from, pending_to,
-                donation, office_fund, from_date, 1  # Replace 1 with the logged-in user ID
+                donation, office_fund, from_date, 1  # Replace `1` with the logged-in user ID
             )
             cursor.execute(query, values)
             mysql.connection.commit()
@@ -186,6 +188,7 @@ def new_member_registration():
             cursor.close()
 
         return redirect(url_for('new_member_registration'))
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 
@@ -323,32 +326,46 @@ def renew_membership(membership_id):
         cursor = mysql.connection.cursor()
 
         if request.method == 'POST':
-            # Process form data
-            renewal_fees = request.form['renewal_fees']
-            next_from_date = request.form['next_from_date']
-            next_to_date = request.form['next_to_date']
-            renewal_penalty = request.form['renewal_penalty']
-            delay_in_renewal = request.form['delay_in_renewal']
+            # Get form data and provide default values if not set
+            renewal_fees = request.form.get('renewal_fees', 0)
+            next_from_date = request.form.get('next_from_date')
+            next_to_date = request.form.get('next_to_date')
+            renewal_penalty = request.form.get('renewal_penalty', 0)
+            delay_in_renewal = request.form.get('delay_in_renewal', '0')
 
-            # Insert renewal record
+            # Convert renewal fees and penalty to float, set default 0 if not provided
+            renewal_fees = float(renewal_fees) if renewal_fees else 0.0
+            renewal_penalty = float(renewal_penalty) if renewal_penalty else 0.0
+
+            # Map delay_in_renewal to ENUM values ('No', 'Yes')
+            delay_in_renewal = 'Yes' if delay_in_renewal == '1' else 'No'
+
+            # Generate renewal_id (max 15 chars)
+            renewal_id = f"R{membership_id}{uuid.uuid4().hex[:4]}"
+
+            # Get the current date for renewal date
+            renewal_date = datetime.now().date()
+
+            # Insert renewal record into the database
             cursor.execute("""
                 INSERT INTO tbl_member_renewals (
                     renewal_id, member_reg_id, renewal_fees, delayed_renewal,
                     delay_penalty, renewal_date, renewed_by, date_renewed, nextFrom_date, nextTo_date
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s, %s)
-            """, (f"reid_{membership_id}_{uuid.uuid4().hex[:4]}", membership_id, renewal_fees, delay_in_renewal, renewal_penalty, '2025-01-18', 'admin', next_from_date, next_to_date))
+            """, (renewal_id, membership_id, renewal_fees, delay_in_renewal, renewal_penalty, renewal_date, 'admin', next_from_date, next_to_date))
 
-            # Update member's next renewal date
+            # Update member's next renewal date in the registration table
             cursor.execute("""
                 UPDATE tbl_member_registration
                 SET last_renewed_date = next_renewal_date, next_renewal_date = %s
                 WHERE reg_id = %s
             """, (next_to_date, membership_id))
 
+            # Commit changes to the database
             mysql.connection.commit()
-            flash("Membership renewed successfully!", "success")
 
-            # Redirect to view_renewals after successful submission
+            # Show success message
+            flash("Membership renewed successfully!", "success")
             return redirect(url_for('view_renewals', membership_id=membership_id))
 
         # Fetch member details for GET request
@@ -361,12 +378,15 @@ def renew_membership(membership_id):
         return render_template('Renew_Membership.html', member=member)
 
     except Exception as e:
+        # Rollback transaction in case of error
         mysql.connection.rollback()
+        print("SQL Error:", str(e))  # Debugging
         flash(f"An error occurred: {e}", "error")
         return redirect(url_for('renew_membership', membership_id=membership_id))
 
     finally:
         cursor.close()
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 @app.route('/view_renewals/<int:membership_id>')
@@ -772,6 +792,38 @@ def delete_member(membership_id):
             cursor.close()
 
         return redirect(url_for('index'))  # 
+    
+# 
+@app.route('/delete_renewal/<int:member_reg_id>', methods=['POST'])
+def delete_renewal(member_reg_id):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT renewal_id FROM tbl_member_renewals
+            WHERE member_reg_id = %s
+            ORDER BY renewal_id DESC LIMIT 1
+        """, (member_reg_id,))
+        
+        latest_renewal = cur.fetchone()
+
+        if latest_renewal:
+            renewal_id = latest_renewal['renewal_id']
+            cur.execute("DELETE FROM tbl_member_renewals WHERE renewal_id = %s", (renewal_id,))
+            mysql.connection.commit()
+            flash("Latest renewal entry deleted successfully!", "success")
+        else:
+            flash("No renewal entries found for this member.", "warning")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"Error deleting renewal: {str(e)}", "danger")
+
+    finally:
+        cur.close()
+
+    return redirect(url_for('index'))  # Redirect to the index page
+    
+    
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # receipt generate code
 def convert_num_to_words(num):
@@ -792,7 +844,8 @@ def convert_num_to_words(num):
         return units[num // 100] + " hundred" + (" " + convert_num_to_words(num % 100) if num % 100 != 0 else "")
     return "number too large"
 
-@app.route('/renewal_receipt/<int:renewal_id>', methods=['GET'])
+
+@app.route('/renewal_receipt/<string:renewal_id>', methods=['GET'])
 def renewal_receipt(renewal_id):
     data = {}
     try:
@@ -810,12 +863,12 @@ def renewal_receipt(renewal_id):
 
         if not renewal:
             flash("Renewal not found.", "error")
-            # return redirect(url_for('index'))
+            return redirect('Error.html', message="Renewal not found for this ID.")
 
-        # Fetch receipt number
-        cursor.execute("SELECT rec_no FROM tbl_reciepts WHERE rec_id = %s", (renewal_id,))
+        # Fetch receipt number (rec_no)
+        cursor.execute("SELECT rec_no FROM tbl_reciepts WHERE rec_id = %s AND rec_type = 'renewal'", (renewal_id,))
         receipt = cursor.fetchone()
-        receipt_no = receipt['rec_no'] if receipt else renewal_id
+        receipt_no = receipt['rec_no'] if receipt else renewal_id  # Default to renewal_id if no receipt found
 
         # Fetch user details (renewed by)
         cursor.execute("SELECT fname, lname FROM cm_users WHERE cm_user_id = %s", (renewal['renewed_by'],))
@@ -845,7 +898,7 @@ def renewal_receipt(renewal_id):
 
     except Exception as e:
         flash(f"An error occurred: {e}", "error")
-        # return redirect(url_for('index'))
+        return render_template('error.html', message="An error occurred while fetching renewal details.")
     finally:
         cursor.close()
 

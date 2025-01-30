@@ -96,6 +96,7 @@
                         <p class="mb-0 ms-auto">Reg. No.: {{ member.reg_id }}</p>
                     </div>
                     <div class="card-body">
+
                         <div class="text-center d-flex justify-content-between flex-wrap gap-5 mb-2">
                             <button class="btn btn-primary"
                                 onclick="window.location.href='{{ url_for('renewal_receipt', renewal_id=member.reg_id) }}'">
@@ -103,8 +104,12 @@
                             </button>
 
 
+
+
                             <button class="btn btn-primary"
-                                onclick="window.location.href='/renew_membership/{{ member.reg_id }}'">RENEW</button>
+                                onclick="window.location.href='{{ url_for('renew_membership', membership_id=member.reg_id) }}'">RENEW</button>
+
+
                             <button class="btn btn-primary"
                                 onclick="window.location.href='/donation/{{ member.reg_id }}'">DONATION</button>
 
@@ -179,10 +184,11 @@
                             </button>
                             {% endif %}
 
-                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}" class="btn btn-primary">
+                            <a href="{{ url_for('view_donation', membership_id=member.reg_id) }}"
+                                class="btn btn-primary">
                                 View Donations
                             </a>
-                            
+
                             <button class="btn btn-secondary"
                                 onclick="window.location.href='{{ url_for('view_renewals', membership_id=member.reg_id) }}'">View
                                 Renewals</button>
