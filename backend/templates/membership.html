@@ -99,16 +99,14 @@
 
                         <div class="text-center d-flex justify-content-between flex-wrap gap-5 mb-2">
                             <button class="btn btn-primary"
-                                onclick="window.location.href='{{ url_for('renewal_receipt', renewal_id=member.reg_id) }}'">
+                                onclick="window.location.href='{{ url_for('renewal_receipt', renewal_id=member['renewal_id']) }}'">
                                 PRINT
                             </button>
 
 
 
-
                             <button class="btn btn-primary"
                                 onclick="window.location.href='{{ url_for('renew_membership', membership_id=member.reg_id) }}'">RENEW</button>
-
 
                             <button class="btn btn-primary"
                                 onclick="window.location.href='/donation/{{ member.reg_id }}'">DONATION</button>
@@ -118,7 +116,11 @@
                             </form>
 
 
-                            <button class="btn btn-primary">EDIT</button>
+                            <button class="btn btn-primary" onclick="location.href='{{ url_for('edit', membership_id=membership_id) }}'">
+                                EDIT
+                            </button>
+                            
+                            
                             <button class="btn btn-primary" onclick="window.location.href='/'">CANCEL</button>
                         </div>
                         <div class="row">
@@ -205,6 +207,12 @@
             event.preventDefault();
             window.location.href = '/download_dump';
         }
+
+
+
+
+
+        
     </script>
 </body>
 

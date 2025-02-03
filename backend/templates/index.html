@@ -181,7 +181,7 @@
                     <a href="#" class="nav-link py-1 ">Dashboard</a>
                     <a href="#" onclick="window.location.href='/Change_Password'" class="nav-link py-1 ">Change
                         Password</a>
-                    <a href="#" class="nav-link py-1">User Accounts</a>
+                    <a href="#" onclick="window.location.href='/Account_Reg'" class="nav-link py-1">User Accounts</a>
                     <a href="#" id='downloadBtn' class="nav-link py-1">Backup Database</a>
                 </nav>
             </div>
@@ -199,23 +199,23 @@
                     </div>
                 </div>
                 <div class="main-content" style="background-color: #F5F5F5;">
-                    <form>
+                    <form method="GET">
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="mhadaNumber" class="form-label font-weight-bold">Mhada Number</label>
-                                <input type="text" class="form-control " id="mhadaNumber">
+                                <input type="text" class="form-control" name="mhada_no" id="mhadaNumber">
                             </div>
                             <div class="col-md-4">
                                 <label for="regNo" class="form-label">Reg. No.</label>
-                                <input type="text" class="form-control" id="regNo">
+                                <input type="text" class="form-control" name="reg_id" id="regNo">
                             </div>
                             <div class="col-md-2">
                                 <label for="gender" class="form-label">Gender</label>
-                                <select class="form-select" id="gender">
-                                    <option selected>All</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Other</option>
+                                <select class="form-select" name="gender" id="gender">
+                                    <option value="">All</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
                         </div>
@@ -223,26 +223,25 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="memberName" class="form-label">Member Name</label>
-                                <input type="text" class="form-control" id="memberName">
+                                <input type="text" class="form-control" name="mill_worker_name" id="memberName">
 
                                 <label for="fromDate" class="form-label mt-3">From Date</label>
-                                <input type="date" class="form-control" id="fromDate">
+                                <input type="date" class="form-control" name="from_date" id="fromDate">
                                 <button type="submit" class="btn btn-success w-100 mt-2">Search</button>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="phoneNumber" class="form-label">Phone Number</label>
-                                <input type="text" class="form-control" id="phoneNumber">
+                                <input type="text" class="form-control" name="phone_number" id="phoneNumber">
 
                                 <label for="toDate" class="form-label mt-3">To Date</label>
-                                <input type="date" class="form-control" id="toDate">
-                                <button onclick="exportToExcel()" type="button" id="exportButton"
-                                    class="btn btn-danger w-100 mt-2" style="background-color: #3276B1;">Export Data to
-                                    Excel</button>
+                                <input type="date" class="form-control" name="to_date" id="toDate">
+                                <button type="submit" name="export" value="1" class="btn btn-danger w-100 mt-2"
+                                    style="background-color: #3276B1;">Export Data to Excel</button>
                             </div>
                         </div>
-
                     </form>
+
                     <!-----------------------------------------------------------------------------------------------------------------------------------------------  -->
                     <div class="center-container">
                         <div class="form-row">

@@ -92,143 +92,199 @@
             </div>
             <div class="col-md-10 main-content">
                 <div class="header d-flex justify-content-between align-items-center">
-                    <h2 class="mt-2 fs-1" style="font-size: larger;">New Member Registration</h2>
+                    <h2 class="mt-2 fs-1" style="font-size: larger;">Edit Member Account</h2>
                 </div>
                 <div class="container mt-4">
                     <!-- Registration Form -->
                     <div class="card">
                         <div class="card-body">
-                            <form class="row g-3" method="POST" action="{{ url_for('new_member_registration') }}">
-                                <!-- First Line (4 fields in one line) -->
+                            <form class="row g-3" method="POST" action="{{ url_for('edit') }}">
+                                <!-- REG ID -->
                                 <div class="col-md-3">
                                     <label for="RegID" class="form-label fw-bold">REG ID</label>
-                                    <input type="text" class="form-control" id="RegID" name="txtReg_id" required>
+                                    <input type="text" class="form-control" id="RegID" name="txtReg_id"
+                                        value="{{ member.reg_id }}" readonly>
                                 </div>
+
+                                <!-- Mhada Receipt Number -->
                                 <div class="col-md-3">
                                     <label for="mhadareciptNumber" class="form-label fw-bold">Mhada Receipt
                                         Number</label>
-                                    <input type="text" class="form-control" id="mhadareciptNumber" name="txtMhadaNo">
+                                    <input type="text" class="form-control" id="mhadareciptNumber" name="txtMhadaNo"
+                                        value="{{ member.mhada_no }}">
                                 </div>
+
+                                <!-- Enrollment Type -->
                                 <div class="col-md-3">
                                     <label for="enrollmenttype" class="form-label fw-bold">Enrollment Type</label>
                                     <select id="enrollmenttype" class="form-select" name="select_enrollment_type">
-                                        <option value="Domestic worker">Domestic Worker (Gharelu Kamgar)</option>
-                                        <option value="Mill worker">Mill Worker</option>
+                                        <option value="Domestic worker" {% if member.enrollment_type=='Domestic worker'
+                                            %}selected{% endif %}>Domestic Worker (Gharelu Kamgar)</option>
+                                        <option value="Mill worker" {% if member.enrollment_type=='Mill worker'
+                                            %}selected{% endif %}>Mill Worker</option>
                                     </select>
                                 </div>
+
+                                <!-- Mill Name -->
                                 <div class="col-md-3">
                                     <label for="Millname" class="form-label fw-bold">Mill Name</label>
                                     <select id="Millname" class="form-select" name="select_mill_name">
                                         {% for mill in mill_names %}
-                                        <option value="{{ mill[0] }}">{{ mill[1] }}</option>
+                                        <option value="{{ mill[0] }}" {% if member.mill_name_id==mill[0] %}selected{%
+                                            endif %}>{{ mill[1] }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
 
-                                <!-- Second Line (Mill Worker Name and Legal Hire Name) -->
+                                <!-- Mill Worker Name -->
                                 <div class="col-md-6">
                                     <label for="millWorkerName" class="form-label fw-bold">Mill Worker Name</label>
                                     <input type="text" class="form-control" id="millWorkerName" name="txtMillWorkerName"
-                                        required>
+                                        value="{{ member.mill_worker_name }}" required>
                                 </div>
+
+                                <!-- Legal Hire Name -->
                                 <div class="col-md-6">
                                     <label for="legalHireName" class="form-label fw-bold">Legal Hire Name- Fill this
                                         only if applicable</label>
-                                    <input type="text" class="form-control" id="legalHireName" name="txtLegalHierName">
+                                    <input type="text" class="form-control" id="legalHireName" name="txtLegalHierName"
+                                        value="{{ member.legal_hier_name }}">
                                 </div>
 
-                                <!-- phone number -->
+                                <!-- Phone Number -->
                                 <div class="col-md-6">
                                     <label for="phoneNumber" class="form-label fw-bold">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phoneNumber" name="txtPhoneNumber">
+                                    <input type="tel" class="form-control" id="phoneNumber" name="txtPhoneNumber"
+                                        value="{{ member.phone_number }}">
                                 </div>
-                                <!-- email id -->
+
+                                <!-- Email ID -->
                                 <div class="col-md-6">
                                     <label for="emailID" class="form-label fw-bold">Email ID</label>
-                                    <input type="email" class="form-control" id="emailID" name="txtEmail">
+                                    <input type="email" class="form-control" id="emailID" name="txtEmail"
+                                        value="{{ member.email_id }}">
                                 </div>
-                                <!-- Third Line (Address) -->
+
+                                <!-- Address -->
                                 <div class="col-md-12">
                                     <label for="address" class="form-label fw-bold">Address</label>
-                                    <textarea class="form-control" id="address" name="txtAddress"></textarea>
+                                    <textarea class="form-control" id="address"
+                                        name="txtAddress">{{ member.address }}</textarea>
                                 </div>
 
-                                <!-- Fourth Line (Aadhar Number and PAN Number) -->
+                                <!-- Aadhar Number -->
                                 <div class="col-md-6">
                                     <label for="aadharNumber" class="form-label fw-bold">Aadhar Number</label>
-                                    <input type="text" class="form-control" id="aadharNumber" name="txtAadharNumber">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="panNumber" class="form-label fw-bold">PAN Number</label>
-                                    <input type="text" class="form-control" id="panNumber" name="txtPANNumber">
+                                    <input type="text" class="form-control" id="aadharNumber" name="txtAadharNumber"
+                                        value="{{ member.aadhar_number }}">
                                 </div>
 
-                                <!-- Fifth Line (ESIC NO and Gender) -->
+                                <!-- PAN Number -->
+                                <div class="col-md-6">
+                                    <label for="panNumber" class="form-label fw-bold">PAN Number</label>
+                                    <input type="text" class="form-control" id="panNumber" name="txtPANNumber"
+                                        value="{{ member.pan_number }}">
+                                </div>
+
+                                <!-- ESIC NO -->
                                 <div class="col-md-6">
                                     <label for="esicNo" class="form-label fw-bold">ESIC NO</label>
-                                    <input type="text" class="form-control" id="esicNo" name="txtESICNumber">
+                                    <input type="text" class="form-control" id="esicNo" name="txtESICNumber"
+                                        value="{{ member.esic_number }}">
                                 </div>
+
+                                <!-- Gender -->
                                 <div class="col-md-6">
                                     <label for="gender" class="form-label fw-bold">Gender</label>
                                     <select id="gender" class="form-select" name="select_gender">
-                                        <option selected>Male</option>
-                                        <option value="Female">Female</option>
+                                        <option value="Male" {% if member.gender=='Male' %}selected{% endif %}>Male
+                                        </option>
+                                        <option value="Female" {% if member.gender=='Female' %}selected{% endif %}>
+                                            Female</option>
                                     </select>
                                 </div>
 
-                                <!-- Sixth Line (Age and Retired/Resigned) -->
+                                <!-- Age -->
                                 <div class="col-md-6">
                                     <label for="age" class="form-label fw-bold">Age</label>
-                                    <input type="text" class="form-control" id="age" name="txtAge">
+                                    <input type="text" class="form-control" id="age" name="txtAge"
+                                        value="{{ member.age }}">
                                 </div>
+
+                                <!-- Retired / Resigned -->
                                 <div class="col-md-6">
                                     <label for="retiredResigned" class="form-label fw-bold">Retired / Resigned</label>
                                     <select id="retiredResigned" class="form-select" name="select_retired_resigned">
-                                        <option selected>Not Applicable</option>
-                                        <option value="Retired">Retired</option>
-                                        <option value="Resigned">Resigned</option>
+                                        <option value="Not Applicable" {% if member.retired_resigned=='Not Applicable'
+                                            %}selected{% endif %}>Not Applicable</option>
+                                        <option value="Retired" {% if member.retired_resigned=='Retired' %}selected{%
+                                            endif %}>Retired</option>
+                                        <option value="Resigned" {% if member.retired_resigned=='Resigned' %}selected{%
+                                            endif %}>Resigned</option>
                                     </select>
                                 </div>
+
+                                <!-- New Registration Fee -->
                                 <div class="col-md-6">
                                     <label for="newregisfee" class="form-label fw-bold">New Registration Fee</label>
-                                    <input type="number" class="form-control" id="newregisfee" name="txtNewRegFees">
+                                    <input type="number" class="form-control" id="newregisfee" name="txtNewRegFees"
+                                        value="{{ member.reg_fee }}">
                                 </div>
+
+                                <!-- Penalty -->
                                 <div class="col-md-6">
                                     <label for="penalty" class="form-label fw-bold">Penalty</label>
-                                    <input type="number" class="form-control" id="penalty" name="txtPenalty">
+                                    <input type="number" class="form-control" id="penalty" name="txtPenalty"
+                                        value="{{ member.pending_penalty }}">
                                 </div>
-                                <!-- Seventh Line (REGS From and To) -->
+
+                                <!-- Registration From -->
                                 <div class="col-md-6">
                                     <label for="regsFrom" class="form-label fw-bold">Registration From</label>
-                                    <input type="date" class="form-control" id="regsFrom" name="txtFromDate">
+                                    <input type="date" class="form-control" id="regsFrom" name="txtFromDate"
+                                        value="{{ member.datetime_created }}">
                                 </div>
+
+                                <!-- REGS To -->
                                 <div class="col-md-6">
                                     <label for="regsTo" class="form-label fw-bold">REGS To</label>
-                                    <input type="date" class="form-control" id="regsTo" name="txtToDate">
+                                    <input type="date" class="form-control" id="regsTo" name="txtToDate"
+                                        value="{{ member.next_renewal_date }}">
                                 </div>
 
-                                <!-- Eighth Line (Pending Amount, Pending From, and Pending Upto) -->
+                                <!-- Pending Amount -->
                                 <div class="col-md-4">
                                     <label for="pendingAmount" class="form-label fw-bold">Pending Amount</label>
-                                    <input type="text" class="form-control" id="pendingAmount" name="txtPendingAmt">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="pendingFrom" class="form-label fw-bold">Pending From</label>
-                                    <input type="date" class="form-control" id="pendingFrom" name="txtPendingFrom">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="pendingUpto" class="form-label fw-bold">Pending Upto</label>
-                                    <input type="date" class="form-control" id="pendingUpto" name="txtPendingTo">
+                                    <input type="text" class="form-control" id="pendingAmount" name="txtPendingAmt"
+                                        value="{{ member.pending_amt }}">
                                 </div>
 
-                                <!-- Ninth Line (Donation and Office Fund) -->
+                                <!-- Pending From -->
+                                <div class="col-md-4">
+                                    <label for="pendingFrom" class="form-label fw-bold">Pending From</label>
+                                    <input type="date" class="form-control" id="pendingFrom" name="txtPendingFrom"
+                                        value="{{ member.pendingFrom }}">
+                                </div>
+
+                                <!-- Pending Upto -->
+                                <div class="col-md-4">
+                                    <label for="pendingUpto" class="form-label fw-bold">Pending Upto</label>
+                                    <input type="date" class="form-control" id="pendingUpto" name="txtPendingTo"
+                                        value="{{ member.pendingTo }}">
+                                </div>
+
+                                <!-- Donation -->
                                 <div class="col-md-6">
                                     <label for="donation" class="form-label fw-bold">Donation</label>
-                                    <input type="text" class="form-control" id="donation" name="txtDonation">
+                                    <input type="text" class="form-control" id="donation" name="txtDonation"
+                                        value="{{ member.donation_fee }}">
                                 </div>
+
+                                <!-- Office Fund -->
                                 <div class="col-md-6">
                                     <label for="officeFund" class="form-label fw-bold">Office Fund</label>
-                                    <input type="text" class="form-control" id="officeFund" name="txtOfficeFund">
+                                    <input type="text" class="form-control" id="officeFund" name="txtOfficeFund"
+                                        value="{{ member.office_fund }}">
                                 </div>
 
                                 <!-- Submit Button -->

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>acc reg</title>
+    <title>Account Registration</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -86,52 +86,41 @@
             </div>
 
             <!-- Main Content Column (Table) -->
-            <div class="col-md-10 content">
-                <h2>Account Registrations</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Profile Picture</th>
-                                <th>Account Holder Name</th>
-                                <th>Login ID</th>
-                                <th>User Type</th>
-                                <th>Date Created</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><img src="profile1.jpg" alt="Profile Picture" class="profile-pic"></td>
-                                <td>Harshai D</td>
-                                <td>harshalc677@gmail.com</td>
-                                <td>User</td>
-                                <td>9th January 2025</td>
-                            </tr>
-                            <tr>
-                                <td><img src="profile2.jpg" alt="Profile Picture" class="profile-pic"></td>
-                                <td>Nandu Parker</td>
-                                <td>nanduparker1958@gmail.com</td>
-                                <td>Administrator</td>
-                                <td>25th June 2024</td>
-                            </tr>
-                            <tr>
-                                <td><img src="profile3.jpg" alt="Profile Picture" class="profile-pic"></td>
-                                <td>PRADYA KATE</td>
-                                <td>pradnyakate0499@gmail.com</td>
-                                <td>User</td>
-                                <td>1st December 2020</td>
-                            </tr>
-                            <tr>
-                                <td><img src="profile4.jpg" alt="Profile Picture" class="profile-pic"></td>
-                                <td>Manuela Boutanar</td>
-                                <td>nanduturandkar@BEGfibromadil.com</td>
-                                <td>Administratora</td>
-                                <td>Rishi Gondoratkar 2016</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="col-md-10">
+                <div class="table-container mt-3">
+                    <!-- New Member Button -->
+                    <div class="d-flex justify-content-end mb-2">
+                        <a href="{{ url_for('reg_form') }}" class="btn btn-danger btn-sm">New Member</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Profile Picture</th>
+                                    <th>Account Holder Name</th>
+                                    <th>Login ID</th>
+                                    <th>User Type</th>
+                                    <th>Date Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td><img src="{{ user.profile_picture_location }}" alt="Profile Picture"
+                                            class="profile-pic"></td>
+                                    <td>{{ user.fname }} {{ user.lname }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ "Administrator" if user.user_type == 'a' else "User" }}</td>
+                                    <td>{{ user.datetime_created }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
 

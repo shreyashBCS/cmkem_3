@@ -24,6 +24,14 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'  # Use dictionary-like results
 
 mysql = MySQL(app)
 
+# upload folder
+UPLOAD_FOLDER = 'asset/img/profile_pic'
+os.makedirs(UPLOAD_FOLDER,exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# logging configuration
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/')
 def index():
     """Render the index page with paginated member data."""
@@ -73,204 +81,141 @@ def index():
 # NEW MEMBER MEMBER REGISTRATION
 @app.route('/new_member_registration', methods=['GET', 'POST'])
 def new_member_registration():
-    """Handle new member registration."""
-    if request.method == 'GET':
+    if request.method == 'POST':
         try:
-            cursor = mysql.connection.cursor()  # Assumes mysql.connection is properly initialized
-            cursor.execute("SELECT mill_id, mill_name FROM tbl_mills ORDER BY mill_name ASC")
-            mill_names = cursor.fetchall()
-            return render_template('new_member_registration.html', mill_names=mill_names)
-        except Exception as e:
-            flash(f"Error fetching mill names: {e}", "error")
-            return render_template('new_member_registration.html', mill_names=[])
-        finally:
-            cursor.close()
+            # Handle form data
+            reg_id = request.form['txtReg_id']
+            mhada_no = request.form['txtMhadaNo']
+            enrollment_type = request.form['select_enrollment_type']
+            mill_name_id = request.form.get('select_mill_name', None)  # Optional field, default to None if not selected
+            mill_worker_name = request.form['txtMillWorkerName']
+            legal_hire_name = request.form.get('txtLegalHierName', None)  # Optional field
+            phone_number = request.form['txtPhoneNumber']
+            email = request.form['txtEmail']
+            address = request.form['txtAddress']
+            aadhar_number = request.form['txtAadharNumber']
+            pan_number = request.form['txtPANNumber']
+            esic_no = request.form['txtESICNumber']
+            gender = request.form['select_gender']
+            age = request.form['txtAge']
+            retired_resigned = request.form['select_retired_resigned']
+            new_reg_fee = request.form['txtNewRegFees']
+            penalty = request.form['txtPenalty']
+            regs_from = request.form['txtFromDate']
+            regs_to = request.form['txtToDate']
+            pending_amt = request.form['txtPendingAmt']
+            pending_from = request.form['txtPendingFrom']
+            pending_upto = request.form['txtPendingTo']
+            donation = request.form['txtDonation']
+            office_fund = request.form['txtOfficeFund']
 
-    elif request.method == 'POST':
-        form_data = request.form.to_dict()  # Convert ImmutableMultiDict to regular dict
-
-        # Extract form data
-        reg_id = form_data.get('txtReg_id')
-        mhada_no = form_data.get('txtMhadaNo')
-        enrollment_type = form_data.get('select_enrollment_type')
-        mill_name_id = form_data.get('select_mill_name', '')
-        mill_worker_name = form_data.get('txtMillWorkerName')
-        legal_hier_name = form_data.get('txtLegalHierName', '')
-        phone_number = form_data.get('txtPhoneNumber')
-        email = form_data.get('txtEmail', '')
-        address = form_data.get('txtAddress', '')
-        aadhar_number = form_data.get('txtAadharNumber', '')
-        pan_number = form_data.get('txtPANNumber', '')
-        esic_number = form_data.get('txtESICNumber', '')
-        gender = form_data.get('select_gender')
-        age = form_data.get('txtAge')
-        retired_resigned = form_data.get('select_retired_resigned')
-        new_reg_fees = form_data.get('txtNewRegFees')
-        from_date = form_data.get('txtFromDate')
-        to_date = form_data.get('txtToDate')
-        pending_amt = form_data.get('txtPendingAmt', '0')
-        penalty = form_data.get('txtPenalty', '0')
-        pending_from = form_data.get('txtPendingFrom', '2012')
-        pending_to = form_data.get('txtPendingTo', '')
-        donation = form_data.get('txtDonation', '0')
-        office_fund = form_data.get('txtOfficeFund', '0')
-
-        # Validate required fields
-        required_fields = {
-            "Registration ID": reg_id,
-            "Mill Worker Name": mill_worker_name,
-            "Gender": gender,
-            "Age": age,
-            "Retired/Resigned Status": retired_resigned,
-            "New Registration Fees": new_reg_fees,
-            "From Date": from_date,
-            "To Date": to_date,
-        }
-        for field, value in required_fields.items():
-            if not value.strip():
-                flash(f"{field} is required.", "error")
-                return redirect(url_for('new_member_registration'))
-
-        # Validate numeric fields (convert to float where applicable)
-        numeric_fields = {
-            "Age": age,
-            "New Registration Fees": new_reg_fees,
-            "Penalty": penalty,
-            "Pending Amount": pending_amt,
-            "Donation": donation,
-            "Office Fund": office_fund,
-        }
-        for field, value in numeric_fields.items():
-            if value and not value.replace('.', '', 1).isdigit():  # Allow decimal numbers as well
-                flash(f"{field} must be a valid number.", "error")
-                return redirect(url_for('new_member_registration'))
-
-        # Validate date fields
-        try:
-            datetime.strptime(from_date, "%Y-%m-%d")
-            datetime.strptime(to_date, "%Y-%m-%d")
-        except ValueError:
-            flash("Invalid date format. Please use YYYY-MM-DD.", "error")
-            return redirect(url_for('new_member_registration'))
-
-        # Check if the registration ID already exists
-        try:
-            cursor = mysql.connection.cursor()
-            cursor.execute("SELECT reg_id FROM tbl_member_registration WHERE reg_id = %s", (reg_id,))
-            if cursor.fetchone():
-                flash(f"Member already exists with Registration ID '{reg_id}'. Try a different ID.", "error")
-                return redirect(url_for('new_member_registration'))
-
-            # Insert new member into the database
-            query = """
-                INSERT INTO tbl_member_registration (
-                    reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name,
-                    phone_number, email_id, address, aadhar_number, pan_number, esic_number, gender, age,
-                    retired_resigned, reg_fee, pending_amt, pending_penalty, pendingFrom, pendingTo,
-                    donation_fee, office_fund, reg_from_date, datetime_created, created_by
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s)
-            """
-            # Assuming `1` is the logged-in user ID for now; replace with actual user ID
-            values = (
-                reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name,
-                phone_number, email, address, aadhar_number, pan_number, esic_number, gender, age,
-                retired_resigned, new_reg_fees, pending_amt, penalty, pending_from, pending_to,
-                donation, office_fund, from_date, 1  # Replace `1` with the logged-in user ID
-            )
-            cursor.execute(query, values)
+            # Insert data into the database
+            cur = mysql.connection.cursor()
+            query = """INSERT INTO tbl_member_registrations 
+                        (reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
+                        aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
+                        pending_amt, pending_from, pending_upto, donation, office_fund)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            values = (reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address,
+                      aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
+                      pending_amt, pending_from, pending_upto, donation, office_fund)
+            cur.execute(query, values)
             mysql.connection.commit()
-            flash("Member registered successfully!", "success")
-        except Exception as e:
-            mysql.connection.rollback()
-            flash(f"Error inserting member: {e}", "error")
-            print(f"Error: {e}")  # Print the error to the console
-        finally:
-            cursor.close()
+            cur.close()
 
-        return redirect(url_for('new_member_registration'))
+            flash("Member Registered Successfully!", "success")
+            return redirect('/new_member_registration')
+
+        except Exception as e:
+            mysql.connection.rollback()  # Rollback in case of error
+            flash(f"An error occurred: {str(e)}", "error")
+            return redirect('/new_member_registration')
+
+    else:
+        # Fetch mill names for dropdown from database
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT mill_id, mill_name FROM tbl_mills")
+            mill_names = cur.fetchall()
+            cur.close()
+
+            return render_template('new_member_registration.html', mill_names=mill_names)
+
+        except Exception as e:
+            flash(f"An error occurred while fetching mill names: {str(e)}", "error")
+            return render_template('new_member_registration.html', mill_names=[])
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
-
 @app.route('/status')
 def status():
-    """Render the status page with system statistics."""
-    try:
-        cursor = mysql.connection.cursor()
+    # Get the current date in the format YYYY-MM-DD
+    current_date = datetime.now().strftime('%Y-%m-%d')
 
-        # Get current date and time
-        now = datetime.now()
-        formatted_datetime_now = now.strftime("%d-%m-%Y %H:%M:%S")
+    # Create a cursor to interact with the MySQL database
+    cur = mysql.connection.cursor()
 
-        # Fetch today's total earning
-        cursor.execute("""
-            SELECT SUM(amount) AS total_earning
-            FROM u617101393_cmkemmd
-            WHERE DATE(transaction_date) = CURDATE()
-        """)
-        total_earning = cursor.fetchone()['total_earning'] or 0
+    # Fetch Today's Total Earnings (sum of all payments for today)
+    cur.execute("""
+        SELECT SUM(reg_fee + pending_amt + pending_penalty + donation_fee + office_fund) AS total_earnings
+        FROM tbl_member_registration
+        WHERE DATE(datetime_created) = %s
+    """, (current_date,))
+    total_earnings = cur.fetchone()['total_earnings'] or 0
 
-        # Fetch today's billed earning
-        cursor.execute("""
-            SELECT SUM(amount) AS total_billed_earning
-            FROM u617101393_cmkemmd
-            WHERE DATE(transaction_date) = CURDATE() AND status = 'billed'
-        """)
-        total_billed_earning = cursor.fetchone()['total_billed_earning'] or 0
+    # Fetch Today's Billed Earnings (sum of payments for today's renewals)
+    cur.execute("""
+        SELECT SUM(renewal_fees + delay_penalty) AS billed_earnings
+        FROM tbl_member_renewals
+        WHERE DATE(date_renewed) = %s
+    """, (current_date,))
+    billed_earnings = cur.fetchone()['billed_earnings'] or 0
 
-        # Fetch logged-in session count
-        cursor.execute("""
-            SELECT COUNT(*) AS session_count
-            FROM tbl_logged_sessions
-            WHERE DATE(login_time) = CURDATE()
-        """)
-        session_count = cursor.fetchone()['session_count'] or 0
+    # Fetch Today's Logged-in Sessions count
+    cur.execute("""
+        SELECT COUNT(*) AS logged_sessions
+        FROM tbl_logged_sessions
+        WHERE DATE(session_date) = %s
+    """, (current_date,))
+    logged_sessions = cur.fetchone()['logged_sessions']
 
-        # Fetch new registrations today
-        cursor.execute("""
-            SELECT COUNT(*) AS reg_count
-            FROM tbl_member_registration
-            WHERE DATE(datetime_created) = CURDATE()
-        """)
-        reg_count = cursor.fetchone()['reg_count'] or 0
+    # Fetch Today's New Registrations count
+    cur.execute("""
+        SELECT COUNT(*) AS new_registrations
+        FROM tbl_member_registration
+        WHERE DATE(datetime_created) = %s
+    """, (current_date,))
+    new_registrations = cur.fetchone()['new_registrations']
 
-        # Fetch renewals today
-        cursor.execute("""
-            SELECT COUNT(*) AS renewal_count
-            FROM tbl_member_renewals
-            WHERE DATE(date_renewed) = CURDATE()
-        """)
-        renewal_count = cursor.fetchone()['renewal_count'] or 0
+    # Fetch Today's Renewals count
+    cur.execute("""
+        SELECT COUNT(*) AS renewals_today
+        FROM tbl_member_renewals
+        WHERE DATE(date_renewed) = %s
+    """, (current_date,))
+    renewals_today = cur.fetchone()['renewals_today']
 
-        # Fetch pending renewals today
-        cursor.execute("""
-            SELECT COUNT(*) AS pen_renewal_count
-            FROM tbl_member_renewals
-            WHERE DATE(renewal_due_date) = CURDATE() AND status = 'pending'
-        """)
-        pen_renewal_count = cursor.fetchone()['pen_renewal_count'] or 0
+    # Fetch Today's Pending Renewals count
+    cur.execute("""
+        SELECT COUNT(*) AS pending_to_renew
+        FROM tbl_member_registration
+        WHERE DATE(next_renewal_date) = %s
+    """, (current_date,))
+    pending_to_renew = cur.fetchone()['pending_to_renew']
 
-        # Fetch total registrations
-        cursor.execute("""
-            SELECT
-            formatted_datetime_now=formatted_datetime_now,
-            total_earning=total_earning,
-            total_billed_earning=total_billed_earning,
-            session_count=session_count,
-            reg_count=reg_count,
-            renewal_count=renewal_count,
-            pen_renewal_count=pen_renewal_count,
-            total_reg_count=total_reg_count,
-            total_renewal_count=total_renewal_count,
-            total_donation_count=total_donation_count
-       """ )
+    # Close the cursor and the database connection
+    cur.close()
 
-    except Exception as e:
-        logging.error(f"Error fetching status data: {e}")
-        return "An error occurred while fetching status data.", 500
-
-    finally:
-        cursor.close()
+    # Pass all the calculated data to the template and render the page
+    return render_template('Status.html', 
+                           total_earnings=total_earnings,
+                           billed_earnings=billed_earnings,
+                           logged_sessions=logged_sessions,
+                           new_registrations=new_registrations,
+                           renewals_today=renewals_today,
+                           pending_to_renew=pending_to_renew,
+                           
+                           )
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 @app.route('/adv_report')
@@ -301,7 +246,7 @@ def view_member(reg_id):
             mill_name_result = cursor.fetchone()
             mill_name = mill_name_result['mill_name'] if mill_name_result else "Unknown Mill"
 
-        return render_template('membership.html', member=member, mill_name=mill_name)
+        return render_template('membership.html', member=member, mill_name=mill_name, membership_id=reg_id)
 
     except Exception as e:
         flash(f"An error occurred: {e}", "error")
@@ -493,22 +438,9 @@ def donation(membership_id):
     finally:
         cursor.close()
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# @app.route('/print_renewal')
-# def print_renewal():
-#     render_template('Print_Renewal.html')
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-# @app.route('/delete_renewal/<int:membership_id>',methods=['POST'])
-# def delete(membership_id):
-#     try:
-#         ...
-#         flash("Member deleted successfully!", "success")
-#         return redirect(url_for('index'))  # Add this line
-#     except Exception as e:
-#         flash(f"An error occurred: {e}", "error")
-#         return redirect(url_for('index'))  # Add this line
-#     finally:
-#         cursor.close()
     
 
 
@@ -827,82 +759,200 @@ def delete_renewal(member_reg_id):
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # receipt generate code
 def convert_num_to_words(num):
-    """Convert a number to words (basic implementation)."""
-    units = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-    teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+    ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
     tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+    triplets = ["", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion"]
 
-    if num == 0:
-        return "zero"
-    if num < 10:
-        return units[num]
-    if 10 <= num < 20:
-        return teens[num - 10]
-    if 20 <= num < 100:
-        return tens[num // 10] + (" " + units[num % 10] if num % 10 != 0 else "")
-    if 100 <= num < 1000:
-        return units[num // 100] + " hundred" + (" " + convert_num_to_words(num % 100) if num % 100 != 0 else "")
-    return "number too large"
+    def convert_triplet(num, tri):
+        r = num // 1000
+        x = (num // 100) % 10
+        y = num % 100
+        result = ""
 
+        if x > 0:
+            result += ones[x] + " hundred"
+        if y < 20:
+            result += ones[y]
+        else:
+            result += tens[y // 10] + ones[y % 10]
 
+        if result:
+            result += " " + triplets[tri]
+
+        if r > 0:
+            return convert_triplet(r, tri + 1) + result
+        return result
+
+    return convert_triplet(abs(num), 0).strip().capitalize() + " Rupees Only"
+# 
 @app.route('/renewal_receipt/<string:renewal_id>', methods=['GET'])
 def renewal_receipt(renewal_id):
+    
     data = {}
     try:
-        cursor = mysql.connection.cursor()
+        with mysql.connection.cursor() as cursor:
+            # Fetch renewal details
+            cursor.execute("""
+    SELECT r.*, m.mill_worker_name, m.gender, m.address, m.phone_number, 
+           m.enrollment_type, mil.mill_name
+    FROM tbl_member_renewals r
+    JOIN tbl_member_registration m ON r.member_reg_id = m.reg_id
+    LEFT JOIN tbl_mills mil ON m.mill_name_id = mil.mill_id
+    WHERE CAST(r.renewal_id AS CHAR) = %s
+""", (renewal_id,))
 
-        # Fetch renewal details
-        cursor.execute("""
-            SELECT r.*, m.mill_worker_name, m.gender, m.address, m.phone_number, m.enrollment_type, mil.mill_name
-            FROM tbl_member_renewals r
-            JOIN tbl_member_registration m ON r.member_reg_id = m.reg_id
-            LEFT JOIN tbl_mills mil ON m.mill_name_id = mil.mill_id
-            WHERE r.renewal_id = %s
-        """, (renewal_id,))
-        renewal = cursor.fetchone()
+            renewal = cursor.fetchone()
 
-        if not renewal:
-            flash("Renewal not found.", "error")
-            return redirect('Error.html', message="Renewal not found for this ID.")
+            if not renewal:
+                flash("Renewal not found.", "error")
+                return redirect(url_for('view_member'))  # Redirect to home or another page
 
-        # Fetch receipt number (rec_no)
-        cursor.execute("SELECT rec_no FROM tbl_reciepts WHERE rec_id = %s AND rec_type = 'renewal'", (renewal_id,))
-        receipt = cursor.fetchone()
-        receipt_no = receipt['rec_no'] if receipt else renewal_id  # Default to renewal_id if no receipt found
+            # Debug: Print renewal details
+            print(f"Renewal details: {renewal}")
 
-        # Fetch user details (renewed by)
-        cursor.execute("SELECT fname, lname FROM cm_users WHERE cm_user_id = %s", (renewal['renewed_by'],))
-        user = cursor.fetchone()
+            # Fetch receipt number (rec_no) for the renewal
+            cursor.execute("""
+                SELECT rec_no 
+                FROM tbl_reciepts 
+                WHERE rec_id = %s AND rec_type = 'renewal'
+            """, (renewal_id,))
+            receipt = cursor.fetchone()
 
-        # Prepare data for the template
-        data = {
-            'receipt_no': receipt_no,
-            'member_reg_id': renewal['member_reg_id'],
-            'mill_worker_name': renewal['mill_worker_name'],
-            'gender_prefix': "Mr." if renewal['gender'] == 'male' else "Mrs.",
-            'enrollment_type': renewal['enrollment_type'],
-            'mill_name': renewal['mill_name'],
-            'address': renewal['address'] or 'Address Unavailable',
-            'phone_number': renewal['phone_number'] or 'Not available',
-            'renewal_fees': renewal['renewal_fees'],
-            'delay_penalty': renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0,
-            'date_renewed': renewal['date_renewed'],
-            'next_from_date': renewal['nextFrom_date'],
-            'next_to_date': renewal['nextTo_date'],
-            'renewed_by': f"{user['fname']} {user['lname']}" if user else 'Unknown',
-            'amount_in_words': convert_num_to_words(
-                int(renewal['renewal_fees']) +
-                int(renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0)
-            )
-        }
+            # Debug: Print receipt details
+            print(f"Receipt details: {receipt}")
+
+            # Default to renewal_id if no receipt found
+            receipt_no = receipt['rec_no'] if receipt else renewal_id
+
+            # Fetch user details (renewed by)
+            cursor.execute("SELECT fname, lname FROM cm_users WHERE cm_user_id = %s", 
+                           (renewal['renewed_by'],))
+            user = cursor.fetchone()
+
+            # Debug: Print user details
+            print(f"User details: {user}")
+
+            # Prepare data for the template
+            data = {
+                'receipt_no': receipt_no,
+                'member_reg_id': renewal['member_reg_id'],
+                'mill_worker_name': renewal['mill_worker_name'],
+                'gender_prefix': "Mr." if renewal['gender'] == 'male' else "Mrs.",
+                'enrollment_type': renewal['enrollment_type'],
+                'mill_name': renewal['mill_name'],
+                'address': renewal.get('address', 'Address Unavailable'),
+                'phone_number': renewal.get('phone_number', 'Not available'),
+                'renewal_fees': renewal['renewal_fees'],
+                'delay_penalty': renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0,
+                'date_renewed': renewal['date_renewed'],
+                'next_from_date': renewal['nextFrom_date'],
+                'next_to_date': renewal['nextTo_date'],
+                'renewed_by': f"{user.get('fname', 'Unknown')} {user.get('lname', 'Unknown')}",
+                'amount_in_words': convert_num_to_words(
+                    int(renewal['renewal_fees']) +
+                    int(renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0)
+                )
+            }
 
     except Exception as e:
+        print(f"Error: {e}")
         flash(f"An error occurred: {e}", "error")
-        return render_template('error.html', message="An error occurred while fetching renewal details.")
-    finally:
-        cursor.close()
+        return redirect(url_for('index'))  # Redirect to home or another page
 
     return render_template('Renewal_Receipt.html', **data)
+
+# 
+@app.route('/edit/<int:membership_id>', methods=['GET', 'POST'])
+def edit(membership_id):
+    if request.method == 'GET':
+        # Fetch member details from the database
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM tbl_member_registration WHERE reg_id = %s", (membership_id,))
+        member = cur.fetchone()
+        cur.close()
+
+        if not member:
+            flash('Member not found', 'error')
+            return redirect(url_for('member_detail', membership_id=membership_id))
+
+        # Fetch mill names for dropdown
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT mill_id, mill_name FROM tbl_mills ORDER BY mill_name ASC")
+        mills = cur.fetchall()
+        cur.close()
+
+        return render_template('Edit.html', member=member, mills=mills)
+
+    elif request.method == 'POST':
+        # Handle form submission
+        reg_id = request.form['txtReg_id']
+        mhada_no = request.form['txtMhadaNo']
+        enrollment_type = request.form['select_enrollment_type']
+        mill_name_id = request.form.get('select_mill_name', '')
+        mill_worker_name = request.form['txtMillWorkerName'].title()
+        legal_hier_name = request.form['txtLegalHierName'].title()
+        phone_number = request.form['txtPhoneNumber']
+        email_id = request.form['txtEmail']
+        address = request.form['txtAddress']
+        aadhar_number = request.form['txtAadharNumber']
+        pan_number = request.form['txtPANNumber']
+        esic_number = request.form['txtESICNumber']
+        gender = request.form['select_gender']
+        age = request.form['txtAge']
+        retired_resigned = request.form['select_retired_resigned']
+        reg_fee = request.form['txtNewRegFees']
+        pending_amt = request.form['txtPendingAmt']
+        pending_penalty = request.form['txtPenalty']
+        pending_from = request.form['txtPendingFrom']
+        pending_to = request.form['txtPendingTo']
+        donation_fee = request.form['txtDonation']
+        office_fund = request.form['txtOfficeFund']
+        from_date = request.form['txtFromDate']
+        to_date = request.form['txtToDate']
+
+        # Update the database
+        cur = mysql.connection.cursor()
+        try:
+            if enrollment_type == 'domestic_worker':
+                query = """
+                    UPDATE tbl_member_registration 
+                    SET enrollment_type = %s, mhada_no = %s, mill_worker_name = %s, legal_hier_name = %s, 
+                    phone_number = %s, email_id = %s, address = %s, aadhar_number = %s, pan_number = %s, 
+                    esic_number = %s, gender = %s, age = %s, retired_resigned = %s, reg_fee = %s, 
+                    pending_amt = %s, pending_penalty = %s, pendingFrom = %s, pendingTo = %s, 
+                    donation_fee = %s, office_fund = %s, datetime_created = %s, next_renewal_date = %s 
+                    WHERE reg_id = %s
+                """
+                cur.execute(query, (
+                    enrollment_type, mhada_no, mill_worker_name, legal_hier_name, phone_number, email_id, address,
+                    aadhar_number, pan_number, esic_number, gender, age, retired_resigned, reg_fee, pending_amt,
+                    pending_penalty, pending_from, pending_to, donation_fee, office_fund, from_date, to_date, reg_id
+                ))
+            else:
+                query = """
+                    UPDATE tbl_member_registration 
+                    SET enrollment_type = %s, mhada_no = %s, mill_name_id = %s, mill_worker_name = %s, 
+                    legal_hier_name = %s, phone_number = %s, email_id = %s, address = %s, aadhar_number = %s, 
+                    pan_number = %s, esic_number = %s, gender = %s, age = %s, retired_resigned = %s, reg_fee = %s, 
+                    pending_amt = %s, pending_penalty = %s, pendingFrom = %s, pendingTo = %s, donation_fee = %s, 
+                    office_fund = %s, datetime_created = %s, next_renewal_date = %s 
+                    WHERE reg_id = %s
+                """
+                cur.execute(query, (
+                    enrollment_type, mhada_no, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id,
+                    address, aadhar_number, pan_number, esic_number, gender, age, retired_resigned, reg_fee, pending_amt,
+                    pending_penalty, pending_from, pending_to, donation_fee, office_fund, from_date, to_date, reg_id
+                ))
+
+            mysql.connection.commit()
+            flash('Member updated successfully', 'success')
+        except Exception as e:
+            mysql.connection.rollback()
+            flash(f'Error updating member: {str(e)}', 'error')
+        finally:
+            cur.close()
+
+        return redirect(url_for('member_detail', membership_id=reg_id))
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -1000,9 +1050,70 @@ def office_fund(membership_id):
 
     finally:
         cursor.close()
+# 
+@app.route('/Account_Reg')
+def account_reg():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT fname, lname, user_type, datetime_created, profile_picture_location FROM cm_users ORDER BY datetime_created DESC")
+    users = cursor.fetchall()
+    cursor.close()
+    
+    return render_template('Account_Reg.html', users=users)
 
 
+@app.route('/reg_form', methods=['GET', 'POST'])
+def reg_form():
+    if request.method == 'GET':
+        return render_template('reg_form.html')
 
+    elif request.method == 'POST':
+        # Get form data
+        first_name = request.form['firstName']
+        last_name = request.form['lastName']
+        email = request.form['email']
+        password = request.form['password']
+        user_type = request.form['userType']
+        profile_pic = request.files['profilePicture']
+
+        # Validate and process the uploaded file
+        if profile_pic and allowed_file(profile_pic.filename):
+            try:
+                # Generate a unique filename
+                timestamp = int(datetime.now().timestamp())
+                filename = f"{timestamp}-{profile_pic.filename}"
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                profile_pic.save(filepath)
+
+                # Hash the password
+                hashed_password = generate_password_hash(password)
+
+                # Insert user into the database
+                with mysql.connection.cursor() as cursor:
+                    sql = """
+                        INSERT INTO `cm_users` 
+                        (`cm_user_id`, `fname`, `lname`, `cm_password`, `user_type`, `datetime_created`, `profile_picture_location`) 
+                        VALUES (%s, %s, %s, %s, %s, NOW(), %s)
+                    """
+                    cursor.execute(sql, (email, first_name, last_name, hashed_password, user_type, filepath))
+                    mysql.connection.commit()
+
+                flash("User registered successfully!", "success")
+                return redirect(url_for('reg_form'))
+
+            except Exception as e:
+                mysql.connection.rollback()
+                flash(f"Error registering user: {str(e)}", "danger")
+                return redirect(url_for('reg_form'))
+
+        else:
+            flash("Invalid file upload. Only images are allowed.", "danger")
+            return redirect(url_for('reg_form'))
+
+def allowed_file(filename):
+    """Check if the file has an allowed extension."""
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+# 
 @app.route('/logout')
 def logout():
     """Log out the user."""
@@ -1011,4 +1122,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,use_reloader=False)

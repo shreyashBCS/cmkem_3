@@ -103,8 +103,9 @@
                 <!-- Actions -->
                 <div class="receipt-actions">
                     <button class="btn btn-warning" onclick="window.print()">Print this page</button>
-                    <a href="{{ url_for('member_detail', membership_id=member_reg_id) }}" class="btn btn-secondary">Back
-                        to Member Details</a>
+                    <a href="{{ url_for('view_member', reg_id=member_reg_id) }}" class="btn btn-secondary">Back to
+                        Member Details</a>
+
                 </div>
             </div>
         </div>
