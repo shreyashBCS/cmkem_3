@@ -10,6 +10,7 @@ from io import BytesIO
 import uuid
 import logging
 import time
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -82,6 +83,7 @@ def index():
 @app.route('/new_member_registration', methods=['GET', 'POST'])
 def new_member_registration():
     if request.method == 'POST':
+        print("received",request.form.to_dict())
         try:
             # Handle form data
             reg_id = request.form['txtReg_id']
@@ -111,14 +113,15 @@ def new_member_registration():
 
             # Insert data into the database
             cur = mysql.connection.cursor()
-            query = """INSERT INTO tbl_member_registrations 
-                        (reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
-                        aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
-                        pending_amt, pending_from, pending_upto, donation, office_fund)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            values = (reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address,
-                      aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
-                      pending_amt, pending_from, pending_upto, donation, office_fund)
+            query = """INSERT INTO tbl_member_registration
+            (mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
+            aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
+            pending_amt, pending_from, pending_upto, donation, office_fund)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            values = (mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address,
+          aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
+          pending_amt, pending_from, pending_upto, donation, office_fund)
+
             cur.execute(query, values)
             mysql.connection.commit()
             cur.close()
@@ -787,28 +790,29 @@ def convert_num_to_words(num):
 # 
 @app.route('/renewal_receipt/<string:renewal_id>', methods=['GET'])
 def renewal_receipt(renewal_id):
-    
     data = {}
+
     try:
+        print(f"Received renewal_id: {renewal_id}")  # Debugging Step 1
+
         with mysql.connection.cursor() as cursor:
             # Fetch renewal details
             cursor.execute("""
-    SELECT r.*, m.mill_worker_name, m.gender, m.address, m.phone_number, 
-           m.enrollment_type, mil.mill_name
-    FROM tbl_member_renewals r
-    JOIN tbl_member_registration m ON r.member_reg_id = m.reg_id
-    LEFT JOIN tbl_mills mil ON m.mill_name_id = mil.mill_id
-    WHERE CAST(r.renewal_id AS CHAR) = %s
-""", (renewal_id,))
+                SELECT r.*, m.mill_worker_name, m.gender, m.address, m.phone_number, 
+                       m.enrollment_type, mil.mill_name
+                FROM tbl_member_renewals r
+                JOIN tbl_member_registration m ON r.member_reg_id = m.reg_id
+                LEFT JOIN tbl_mills mil ON m.mill_name_id = mil.mill_id
+                WHERE r.renewal_id = %s
+            """, (renewal_id,))
 
             renewal = cursor.fetchone()
 
             if not renewal:
                 flash("Renewal not found.", "error")
-                return redirect(url_for('view_member'))  # Redirect to home or another page
+                return redirect(url_for('index'))  # Redirect to home
 
-            # Debug: Print renewal details
-            print(f"Renewal details: {renewal}")
+            print(f"Renewal details: {renewal}")  # Debugging Step 2
 
             # Fetch receipt number (rec_no) for the renewal
             cursor.execute("""
@@ -818,8 +822,7 @@ def renewal_receipt(renewal_id):
             """, (renewal_id,))
             receipt = cursor.fetchone()
 
-            # Debug: Print receipt details
-            print(f"Receipt details: {receipt}")
+            print(f"Receipt details: {receipt}")  # Debugging Step 3
 
             # Default to renewal_id if no receipt found
             receipt_no = receipt['rec_no'] if receipt else renewal_id
@@ -827,10 +830,9 @@ def renewal_receipt(renewal_id):
             # Fetch user details (renewed by)
             cursor.execute("SELECT fname, lname FROM cm_users WHERE cm_user_id = %s", 
                            (renewal['renewed_by'],))
-            user = cursor.fetchone()
+            user = cursor.fetchone() or {'fname': 'Unknown', 'lname': ''}
 
-            # Debug: Print user details
-            print(f"User details: {user}")
+            print(f"User details: {user}")  # Debugging Step 4
 
             # Prepare data for the template
             data = {
@@ -847,7 +849,7 @@ def renewal_receipt(renewal_id):
                 'date_renewed': renewal['date_renewed'],
                 'next_from_date': renewal['nextFrom_date'],
                 'next_to_date': renewal['nextTo_date'],
-                'renewed_by': f"{user.get('fname', 'Unknown')} {user.get('lname', 'Unknown')}",
+                'renewed_by': f"{user.get('fname', 'Unknown')} {user.get('lname', '')}",
                 'amount_in_words': convert_num_to_words(
                     int(renewal['renewal_fees']) +
                     int(renewal['delay_penalty'] if renewal['delayed_renewal'] == 'yes' else 0)
@@ -857,9 +859,10 @@ def renewal_receipt(renewal_id):
     except Exception as e:
         print(f"Error: {e}")
         flash(f"An error occurred: {e}", "error")
-        return redirect(url_for('index'))  # Redirect to home or another page
+        return redirect(url_for('index'))
 
     return render_template('Renewal_Receipt.html', **data)
+
 
 # 
 @app.route('/edit/<int:membership_id>', methods=['GET', 'POST'])

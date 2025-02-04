@@ -38,16 +38,91 @@
             margin-top: 20px;
         }
 
+        /* Container for each receipt */
+        .container {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            box-sizing: border-box;
+            max-width: 800px;
+            /* Limit the maximum width */
+            margin-left: auto;
+            margin-right: auto;
+            /* Centering horizontally */
+        }
+
+        /* Print style */
         @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                font-size: 10px;
+                /* Smaller font size for print */
+                width: 100%;
+                height: auto;
+            }
+
+            .container {
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border: none;
+                box-sizing: border-box;
+                page-break-after: always;
+            }
+
+            .row {
+                margin: 0;
+                padding: 0;
+            }
+
+            .col-12 {
+                width: 100%;
+            }
+
+            /* Hide buttons and actions during printing */
             .receipt-actions {
                 display: none;
+            }
+
+            .border-bottom {
+                border: 1px solid #ccc;
+                margin: 10px 0;
+            }
+
+            .receipt-header p {
+                font-size: 10px;
+                /* Reduced font size for header */
+            }
+
+            .text-center h5 {
+                font-size: 14px;
+                /* Smaller title font */
+            }
+
+            .receipt-details p {
+                font-size: 10px;
+                /* Smaller font size for details */
+            }
+
+            /* Ensuring the layout for two receipts in one page */
+            .container {
+                page-break-after: always;
+            }
+
+            /* Center content and adjust page breaks */
+            .container:nth-child(odd) {
+                page-break-before: always;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="container my-4">
+    <!-- First Receipt -->
+    <div class="container">
         <div class="row">
             <div class="col-12">
                 <!-- Receipt Header -->
@@ -105,7 +180,70 @@
                     <button class="btn btn-warning" onclick="window.print()">Print this page</button>
                     <a href="{{ url_for('view_member', reg_id=member_reg_id) }}" class="btn btn-secondary">Back to
                         Member Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Second Receipt (Below the first one) -->
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <!-- Receipt Header -->
+                <div class="receipt-header">
+                    <img src="{{ url_for('static', filename='logo/Logo_In_Slip.png') }}" alt="Logo">
+                    <p>Reg No: ALC 17/10689</p>
+                    <p>Telephone No.: 022 - 24700067</p>
+                    <p>President: Nandu Parker (Vishram) | Secretary: Jitendra Rane</p>
+                    <p>9967392461 | 9819971005</p>
+                </div>
+                <div class="border-bottom"></div>
+
+                <!-- Receipt Title -->
+                <div class="text-center mb-4">
+                    <h5>RENEWAL</h5>
+                    <p>Receipt No.: <strong>{{ receipt_no }}</strong></p>
+                </div>
+
+                <!-- Member Details -->
+                <div class="receipt-details">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong># {{ member_reg_id }}</strong> {{ gender_prefix }} {{ mill_worker_name }}</p>
+                            <p>Work Description: {{ enrollment_type }} {% if mill_name %}({{ mill_name }}){% endif %}
+                            </p>
+                            <p>Phone Number: {{ phone_number }}</p>
+                            <p>Amount in Words: {{ amount_in_words }} Rupees Only</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <p><strong>Date:</strong> {{ date_renewed.strftime('%d - %b - %Y') }}</p>
+                            <p><strong>Place:</strong> {{ address }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-bottom"></div>
+
+                <!-- Renewal Details -->
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <p><strong>From:</strong> {{ next_from_date.strftime('%d-%b-%Y') }}</p>
+                        <p><strong>To:</strong> {{ next_to_date.strftime('%d-%b-%Y') }}</p>
+                        <p><strong>Received By:</strong> {{ renewed_by }}</p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p><strong>Renewal Amount:</strong> {{ renewal_fees }} Rs</p>
+                        {% if delay_penalty > 0 %}
+                        <p><strong>Penalty:</strong> {{ delay_penalty }} Rs</p>
+                        {% endif %}
+                        <h5><strong>Total:</strong> {{ renewal_fees + delay_penalty }} Rs</h5>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="receipt-actions">
+                    <button class="btn btn-warning" onclick="window.print()">Print this page</button>
+                    <a href="{{ url_for('view_member', reg_id=member_reg_id) }}" class="btn btn-secondary">Back to
+                        Member Details</a>
                 </div>
             </div>
         </div>
