@@ -102,7 +102,7 @@
                                 <!-- First Line (4 fields in one line) -->
                                 <div class="col-md-3">
                                     <label for="RegID" class="form-label fw-bold">REG ID</label>
-                                    <input type="text" class="form-control" id="RegID" name="txtReg_id" required>
+                                    <input type="text" class="form-control" id="RegID" name="txtReg_id" readonly>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="mhadareciptNumber" class="form-label fw-bold">Mhada Receipt
@@ -119,11 +119,14 @@
                                 <div class="col-md-3">
                                     <label for="Millname" class="form-label fw-bold">Mill Name</label>
                                     <select id="Millname" class="form-select" name="select_mill_name">
+                                        <option value="" disabled selected>-- Select Mill Name --</option>
+                                        <!-- Default option -->
                                         {% for mill in mill_names %}
                                         <option value="{{ mill[0] }}">{{ mill[1] }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
+
 
                                 <!-- Second Line (Mill Worker Name and Legal Hire Name) -->
                                 <div class="col-md-6">
@@ -171,7 +174,7 @@
                                 <div class="col-md-6">
                                     <label for="gender" class="form-label fw-bold">Gender</label>
                                     <select id="gender" class="form-select" name="select_gender">
-                                        <option selected>Male</option>
+                                        <option value="Male" selected>Male</option>
                                         <option value="Female">Female</option>
                                     </select>
                                 </div>

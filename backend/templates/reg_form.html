@@ -111,6 +111,15 @@
         .btn-back:hover {
             background-color: #5a6268;
         }
+
+        .profile-pic-preview {
+            max-width: 150px; /* Set max width */
+            max-height: 150px; /* Set max height */
+            border-radius: 50%; /* Make it circular */
+            object-fit: cover; /* Crop image to fit */
+            display: block;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -195,6 +204,7 @@
                         <label class="custom-file-label" for="profilePicture">Choose file</label>
                     </div>
                     <small>Profile picture once selected will not be changed for this account.</small>
+                    <img id="previewImage" class="profile-pic-preview" src="#" alt="Profile Preview" style="display: none;">
                 </div>
                 <div class="form-group">
                     <label for="userType">User Type</label>

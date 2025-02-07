@@ -181,3 +181,55 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+    /////
+    
+@app.route('/')
+def index():
+    """Render the index page with paginated member data."""
+    page = int(request.args.get('page', 1))
+    records_per_page = 10
+    offset = (page - 1) * records_per_page
+
+    try:
+        cursor = mysql.connection.cursor()
+
+        # Fetch total records
+        cursor.execute("SELECT COUNT(*) FROM tbl_member_registration")
+        total_records = cursor.fetchone()['COUNT(*)']
+        total_pages = math.ceil(total_records / records_per_page)
+
+        # Fetch paginated records
+        query = """
+            SELECT reg_id, phone_number, mill_worker_name, gender, 
+                   aadhar_number, datetime_created, next_renewal_date
+            FROM tbl_member_registration
+            LIMIT %s OFFSET %s
+        """
+        cursor.execute(query, (records_per_page, offset))
+        data = cursor.fetchall()
+
+        visible_pages = 3
+        start_page = max(1, page - visible_pages // 2)
+        end_page = min(total_pages, start_page + visible_pages)
+        start_page = max(1, end_page - visible_pages)
+
+        return render_template(
+            'index.html',
+            users=data,
+            page=page,
+            total_pages=total_pages,
+            start_page=start_page,
+            end_page=end_page
+        )
+
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+        return render_template('index.html', users=[], page=1, total_pages=1)
+
+    finally:
+        cursor.close()
+
+/////////////
+
+

@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import math
 from datetime import datetime
+from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import subprocess
@@ -11,7 +12,7 @@ import uuid
 import logging
 import time
 from datetime import datetime
-
+from PIL import Image
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -26,13 +27,13 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'  # Use dictionary-like results
 mysql = MySQL(app)
 
 # upload folder
-UPLOAD_FOLDER = 'asset/img/profile_pic'
+UPLOAD_FOLDER = os.path.join('static','profile_pictures')
 os.makedirs(UPLOAD_FOLDER,exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG)
-
+  
 @app.route('/')
 def index():
     """Render the index page with paginated member data."""
@@ -78,61 +79,82 @@ def index():
 
     finally:
         cursor.close()
+        
+        
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # NEW MEMBER MEMBER REGISTRATION
 @app.route('/new_member_registration', methods=['GET', 'POST'])
 def new_member_registration():
     if request.method == 'POST':
-        print("received",request.form.to_dict())
+        print("Received Data:", request.form.to_dict())
         try:
-            # Handle form data
-            reg_id = request.form['txtReg_id']
-            mhada_no = request.form['txtMhadaNo']
+            # Extract form data with default handling for optional fields
+            mhada_no = request.form['txtMhadaNo'].strip()
             enrollment_type = request.form['select_enrollment_type']
-            mill_name_id = request.form.get('select_mill_name', None)  # Optional field, default to None if not selected
-            mill_worker_name = request.form['txtMillWorkerName']
-            legal_hire_name = request.form.get('txtLegalHierName', None)  # Optional field
-            phone_number = request.form['txtPhoneNumber']
-            email = request.form['txtEmail']
-            address = request.form['txtAddress']
-            aadhar_number = request.form['txtAadharNumber']
-            pan_number = request.form['txtPANNumber']
-            esic_no = request.form['txtESICNumber']
+            mill_name_id = request.form.get('select_mill_name', None)  # Optional field
+            mill_worker_name = request.form['txtMillWorkerName'].strip()
+            legal_hire_name = request.form.get('txtLegalHierName', None)
+            phone_number = request.form['txtPhoneNumber'].strip()
+            email = request.form['txtEmail'].strip()
+            address = request.form['txtAddress'].strip()
+            aadhar_number = request.form['txtAadharNumber'].strip()
+            pan_number = request.form['txtPANNumber'].strip()
+            esic_no = request.form['txtESICNumber'].strip()
             gender = request.form['select_gender']
-            age = request.form['txtAge']
+            age = request.form['txtAge'].strip()
             retired_resigned = request.form['select_retired_resigned']
-            new_reg_fee = request.form['txtNewRegFees']
-            penalty = request.form['txtPenalty']
+            new_reg_fee = request.form['txtNewRegFees'].strip()
+            penalty = request.form['txtPenalty'].strip()
             regs_from = request.form['txtFromDate']
             regs_to = request.form['txtToDate']
-            pending_amt = request.form['txtPendingAmt']
+            pending_amt = request.form['txtPendingAmt'].strip()
             pending_from = request.form['txtPendingFrom']
             pending_upto = request.form['txtPendingTo']
-            donation = request.form['txtDonation']
-            office_fund = request.form['txtOfficeFund']
+            donation = request.form['txtDonation'].strip()
+            office_fund = request.form['txtOfficeFund'].strip()
 
-            # Insert data into the database
             cur = mysql.connection.cursor()
-            query = """INSERT INTO tbl_member_registration
-            (mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
-            aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
-            pending_amt, pending_from, pending_upto, donation, office_fund)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            values = (mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address,
-          aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
-          pending_amt, pending_from, pending_upto, donation, office_fund)
+            mysql.connection.autocommit = False  # Disable auto-commit
 
+            # Insert Member Data
+            query = """INSERT INTO tbl_member_registration 
+                (mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
+                aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
+                pending_amt, pending_from, pending_upto, donation, office_fund) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            
+            values = (
+                mhada_no, enrollment_type, mill_name_id if mill_name_id else None, mill_worker_name,
+                legal_hire_name if legal_hire_name else None, phone_number, email, address,
+                aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty,
+                regs_from, regs_to, pending_amt, pending_from, pending_upto, donation, office_fund
+            )
+            
             cur.execute(query, values)
-            mysql.connection.commit()
+
+            # Get the last inserted reg_id (auto-incremented ID)
+            cur.execute("SELECT LAST_INSERT_ID()")
+            new_reg_id = cur.fetchone()[0]
+
+            # Update next renewal date
+            cur.execute("UPDATE tbl_member_registration SET next_renewal_date = %s WHERE reg_id = %s", (regs_to, new_reg_id))
+
+            # Generate Receipt
+            cur.execute("SELECT MAX(rec_no) FROM tbl_reciepts")
+            last_receipt = cur.fetchone()[0] or 0  # If None, start from 0
+            new_receipt = last_receipt + 1
+            cur.execute("INSERT INTO tbl_reciepts (rec_no, rec_type, rec_id) VALUES (%s, %s, %s)", (new_receipt, 'registration', new_reg_id))
+
+            mysql.connection.commit()  # Commit all changes
             cur.close()
 
             flash("Member Registered Successfully!", "success")
-            return redirect('/new_member_registration')
+            return redirect(url_for('new_member_registration'))
 
         except Exception as e:
             mysql.connection.rollback()  # Rollback in case of error
             flash(f"An error occurred: {str(e)}", "error")
-            return redirect('/new_member_registration')
+            return redirect(url_for('new_member_registration'))
 
     else:
         # Fetch mill names for dropdown from database
@@ -141,12 +163,11 @@ def new_member_registration():
             cur.execute("SELECT mill_id, mill_name FROM tbl_mills")
             mill_names = cur.fetchall()
             cur.close()
-
-            return render_template('new_member_registration.html', mill_names=mill_names)
-
         except Exception as e:
             flash(f"An error occurred while fetching mill names: {str(e)}", "error")
-            return render_template('new_member_registration.html', mill_names=[])
+            mill_names = []
+
+        return render_template('new_member_registration.html', mill_names=mill_names)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -225,6 +246,46 @@ def status():
 def adv_report():
     """Render the advanced report page."""
     return render_template('adv_report.html')
+
+
+@app.route('/today_total_earning')
+def today_total_earning():
+    """Render the advanced report page."""
+    return render_template('Today_Total_Earning.html')
+
+
+@app.route('/today_billed_earning')
+def today_billed_earning():
+    """Render the advanced report page."""
+    return render_template('Bill_Earning_Today.html')
+
+
+@app.route('/logged_session')
+def logged_session():
+    """Render the advanced report page."""
+    return render_template('Logged_Session.html')
+
+
+
+@app.route('/new_reg_today')
+def new_reg_today():
+    """Render the advanced report page."""
+    return render_template('New_Reg_Today.html')
+
+
+
+@app.route('/renewal_today')
+def renewal_today():
+    """Render the advanced report page."""
+    return render_template('Total_Renewal_Today.html')
+
+
+
+@app.route('/pending_renewal_today')
+def pending_renewal_today():
+    """Render the advanced report page."""
+    return render_template('Pending_To_Renew.html')
+# #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # VIEW MEMBER
@@ -1085,10 +1146,15 @@ def reg_form():
                 timestamp = int(datetime.now().timestamp())
                 filename = f"{timestamp}-{profile_pic.filename}"
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
+                image=Image.open(profile_pic)
+                max_size=(200,200)
+                image.thumbnail(max_size)
                 profile_pic.save(filepath)
+                image.save(filepath)
 
                 # Hash the password
-                hashed_password = generate_password_hash(password)
+                hashed_password = generate_password_hash(password,method='pbkdf2:sha256')
 
                 # Insert user into the database
                 with mysql.connection.cursor() as cursor:
@@ -1097,7 +1163,7 @@ def reg_form():
                         (`cm_user_id`, `fname`, `lname`, `cm_password`, `user_type`, `datetime_created`, `profile_picture_location`) 
                         VALUES (%s, %s, %s, %s, %s, NOW(), %s)
                     """
-                    cursor.execute(sql, (email, first_name, last_name, hashed_password, user_type, filepath))
+                    cursor.execute(sql, (email, first_name, last_name, hashed_password, user_type, filename))
                     mysql.connection.commit()
 
                 flash("User registered successfully!", "success")
