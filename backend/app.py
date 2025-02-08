@@ -33,10 +33,20 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG)
-  
+
 @app.route('/')
 def index():
-    """Render the index page with paginated member data."""
+    """Render the index page with paginated and filtered member data."""
+    # Get query parameters from the form
+    mhada_no = request.args.get('mhada_no', '').strip()
+    reg_id = request.args.get('reg_id', '').strip()
+    mill_worker_name = request.args.get('mill_worker_name', '').strip()
+    phone_number = request.args.get('phone_number', '').strip()
+    gender = request.args.get('gender', '').strip()
+    from_date = request.args.get('from_date', '').strip()
+    to_date = request.args.get('to_date', '').strip()
+
+    # Pagination parameters
     page = int(request.args.get('page', 1))
     records_per_page = 10
     offset = (page - 1) * records_per_page
@@ -44,21 +54,50 @@ def index():
     try:
         cursor = mysql.connection.cursor()
 
-        # Fetch total records
-        cursor.execute("SELECT COUNT(*) FROM tbl_member_registration")
-        total_records = cursor.fetchone()['COUNT(*)']
-        total_pages = math.ceil(total_records / records_per_page)
-
-        # Fetch paginated records
+        # Base query
         query = """
             SELECT reg_id, phone_number, mill_worker_name, gender, 
                    aadhar_number, datetime_created, next_renewal_date
             FROM tbl_member_registration
-            LIMIT %s OFFSET %s
+            WHERE 1=1
         """
-        cursor.execute(query, (records_per_page, offset))
+        params = []
+
+        # Add filters based on form inputs
+        if mhada_no:
+            query += " AND mhada_no = %s"  # Exact match for Mhada Number
+            params.append(mhada_no)
+        if reg_id:
+            query += " AND reg_id = %s"  # Exact match for Reg. No.
+            params.append(reg_id)
+        if mill_worker_name:
+            query += " AND mill_worker_name LIKE %s"  # Partial match for Name
+            params.append(f"%{mill_worker_name}%")
+        if phone_number:
+            query += " AND phone_number = %s"  # Exact match for Phone Number
+            params.append(phone_number)
+        if gender:
+            query += " AND gender = %s"  # Exact match for Gender
+            params.append(gender)
+        if from_date and to_date:
+            query += " AND datetime_created BETWEEN %s AND %s"  # Date range filter
+            params.extend([from_date, to_date])
+
+        # Fetch total records for pagination
+        count_query = f"SELECT COUNT(*) FROM ({query}) AS filtered_data"
+        cursor.execute(count_query, params)
+        total_records = cursor.fetchone()['COUNT(*)']
+        total_pages = math.ceil(total_records / records_per_page)
+
+        # Add pagination to the main query
+        query += " LIMIT %s OFFSET %s"
+        params.extend([records_per_page, offset])
+
+        # Fetch paginated and filtered records
+        cursor.execute(query, params)
         data = cursor.fetchall()
 
+        # Calculate visible pages for pagination
         visible_pages = 3
         start_page = max(1, page - visible_pages // 2)
         end_page = min(total_pages, start_page + visible_pages)
@@ -70,7 +109,14 @@ def index():
             page=page,
             total_pages=total_pages,
             start_page=start_page,
-            end_page=end_page
+            end_page=end_page,
+            mhada_no=mhada_no,
+            reg_id=reg_id,
+            mill_worker_name=mill_worker_name,
+            phone_number=phone_number,
+            gender=gender,
+            from_date=from_date,
+            to_date=to_date
         )
 
     except Exception as e:
@@ -79,8 +125,6 @@ def index():
 
     finally:
         cursor.close()
-        
-        
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # NEW MEMBER MEMBER REGISTRATION
 @app.route('/new_member_registration', methods=['GET', 'POST'])
@@ -303,6 +347,16 @@ def view_member(reg_id):
             flash("Member not found.", "error")
             return redirect(url_for('index'))
 
+            
+         # Fetch latest renewal_id
+        cursor.execute(
+            "SELECT renewal_id FROM tbl_member_renewals WHERE member_reg_id = %s ORDER BY renewal_id DESC LIMIT 1",
+            (reg_id,)
+        )
+        renewal = cursor.fetchone()
+        renewal_id = renewal['renewal_id'] if renewal else None  # Ensure None if no renewal exists   
+            
+            
         # Fetch mill name if applicable
         mill_name = None
         if member['enrollment_type'] == 'mill_worker':
@@ -310,7 +364,7 @@ def view_member(reg_id):
             mill_name_result = cursor.fetchone()
             mill_name = mill_name_result['mill_name'] if mill_name_result else "Unknown Mill"
 
-        return render_template('membership.html', member=member, mill_name=mill_name, membership_id=reg_id)
+        return render_template('membership.html', member=member, mill_name=mill_name, membership_id=reg_id,renewal_id=renewal_id)
 
     except Exception as e:
         flash(f"An error occurred: {e}", "error")
@@ -849,6 +903,7 @@ def convert_num_to_words(num):
 
     return convert_triplet(abs(num), 0).strip().capitalize() + " Rupees Only"
 # 
+
 @app.route('/renewal_receipt/<string:renewal_id>', methods=['GET'])
 def renewal_receipt(renewal_id):
     data = {}
@@ -1189,6 +1244,33 @@ def logout():
     # Clear session or perform other logout logic
     flash("You have been logged out.", "success")
     return redirect(url_for('index'))
+# 
+@app.route('/view_mill')
+def view_mill():
+    """View all mills in the database."""
+    try:
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)  # Fetch as dictionary
+        cursor.execute("SELECT mill_id, mill_name FROM tbl_mills ORDER BY mill_name ASC")
+        mills = cursor.fetchall()
+        cursor.close()
+
+        # If user authentication is implemented, fetch user type
+        user_type = session.get('user_type', 'u')  # Default to 'u' (normal user) if not set
+
+        return render_template('view_mill.html', mills=mills, user_type=user_type)
+    
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+        return render_template('View_Mill.html', mills=[])
+
+
+
+@app.route('/add_mill')
+def add_mill():
+    """View all mills in the database."""
+    return render_template('Add_Mill.html')
+
+
 
 if __name__ == '__main__':
     app.run(debug=True,use_reloader=False)

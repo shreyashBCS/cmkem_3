@@ -30,7 +30,7 @@
         }
 
         .receipt-details {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .receipt-actions {
@@ -104,6 +104,8 @@
 
             .receipt-details p {
                 font-size: 10px;
+                margin-bottom: 3px;
+                line-height: 1.1;
                 /* Smaller font size for details */
             }
 
@@ -127,7 +129,7 @@
             <div class="col-12">
                 <!-- Receipt Header -->
                 <div class="receipt-header">
-                    <img src="{{ url_for('static', filename='logo/Logo_In_Slip.png') }}" alt="Logo">
+                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo">
                     <p>Reg No: ALC 17/10689</p>
                     <p>Telephone No.: 022 - 24700067</p>
                     <p>President: Nandu Parker (Vishram) | Secretary: Jitendra Rane</p>
@@ -152,7 +154,7 @@
                             <p>Amount in Words: {{ amount_in_words }} Rupees Only</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <p><strong>Date:</strong> {{ date_renewed.strftime('%d - %b - %Y') }}</p>
+                            <p><strong>Date:</strong> {{ date_renewed.strftime('%d-%b-%Y') }}</p>
                             <p><strong>Place:</strong> {{ address }}</p>
                         </div>
                     </div>
@@ -191,7 +193,7 @@
             <div class="col-12">
                 <!-- Receipt Header -->
                 <div class="receipt-header">
-                    <img src="{{ url_for('static', filename='logo/Logo_In_Slip.png') }}" alt="Logo">
+                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo">
                     <p>Reg No: ALC 17/10689</p>
                     <p>Telephone No.: 022 - 24700067</p>
                     <p>President: Nandu Parker (Vishram) | Secretary: Jitendra Rane</p>
@@ -208,7 +210,7 @@
                 <!-- Member Details -->
                 <div class="receipt-details">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-5">
                             <p><strong># {{ member_reg_id }}</strong> {{ gender_prefix }} {{ mill_worker_name }}</p>
                             <p>Work Description: {{ enrollment_type }} {% if mill_name %}({{ mill_name }}){% endif %}
                             </p>
@@ -216,7 +218,7 @@
                             <p>Amount in Words: {{ amount_in_words }} Rupees Only</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <p><strong>Date:</strong> {{ date_renewed.strftime('%d - %b - %Y') }}</p>
+                            <p><strong>Date:</strong> {{ date_renewed.strftime('%d-%b-%Y') }}</p>
                             <p><strong>Place:</strong> {{ address }}</p>
                         </div>
                     </div>
