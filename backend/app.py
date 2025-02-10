@@ -1245,32 +1245,92 @@ def logout():
     flash("You have been logged out.", "success")
     return redirect(url_for('index'))
 # 
-@app.route('/view_mill')
+@app.route('/view_mill', methods=['GET', 'POST'])
 def view_mill():
-    """View all mills in the database."""
+    """View all mills in the database with search functionality and pagination."""
     try:
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)  # Fetch as dictionary
-        cursor.execute("SELECT mill_id, mill_name FROM tbl_mills ORDER BY mill_name ASC")
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        search_query = request.form.get('search_query', '').strip()
+
+        # Pagination logic
+        page = request.args.get('page', 1, type=int)
+        per_page = 10  # Number of records per page
+        offset = (page - 1) * per_page
+
+        if search_query:
+            cursor.execute(
+                "SELECT mill_id, mill_name FROM tbl_mills WHERE mill_name LIKE %s ORDER BY datetime_added DESC LIMIT %s OFFSET %s",
+                ('%' + search_query + '%', per_page, offset)
+            )
+        else:
+            cursor.execute(
+                "SELECT mill_id, mill_name FROM tbl_mills ORDER BY datetime_added DESC LIMIT %s OFFSET %s",
+                (per_page, offset)
+            )
+
         mills = cursor.fetchall()
+
+        # Get total number of mills for pagination
+        cursor.execute("SELECT COUNT(*) AS total FROM tbl_mills WHERE mill_name LIKE %s", ('%' + search_query + '%',))
+        total_mills = cursor.fetchone()["total"]
         cursor.close()
 
-        # If user authentication is implemented, fetch user type
-        user_type = session.get('user_type', 'u')  # Default to 'u' (normal user) if not set
+        total_pages = (total_mills // per_page) + (1 if total_mills % per_page > 0 else 0)
 
-        return render_template('view_mill.html', mills=mills, user_type=user_type)
+        return render_template(
+            'View_Mill.html',
+            mills=mills,
+            search_query=search_query,
+            page=page,
+            total_pages=total_pages
+        )
     
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "error")
-        return render_template('View_Mill.html', mills=[])
+        return render_template('View_Mill.html', mills=[], search_query='')
 
 
-
-@app.route('/add_mill')
+#
+@app.route('/add_mill', methods=['GET', 'POST'])
 def add_mill():
-    """View all mills in the database."""
+    """Add a new mill to the database."""
+    if request.method == 'POST':
+        try:
+            mill_name = request.form.get('txtMillName', '').strip()
+
+            if not mill_name:
+                flash("Mill name cannot be empty!", "error")
+                return redirect(url_for('add_mill'))
+
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+            # Get the last mill_id from the database
+            cursor.execute("SELECT mill_id FROM tbl_mills ORDER BY datetime_added DESC LIMIT 1")
+            last_mill = cursor.fetchone()
+
+            if last_mill and last_mill["mill_id"].startswith("mill_"):
+                last_number = int(last_mill["mill_id"].split("_")[1])  # Extract number part
+                new_mill_id = f"mill_{last_number + 1:010d}"  # Increment and format
+            else:
+                new_mill_id = "mill_0000000001"  # Start from mill_0000000001 if no data exists
+
+            # Insert new mill
+            query = "INSERT INTO tbl_mills (mill_id, mill_name, datetime_added) VALUES (%s, %s, NOW())"
+            cursor.execute(query, (new_mill_id, mill_name))
+            mysql.connection.commit()
+            cursor.close()
+
+            flash("Mill added successfully!", "success")
+            return redirect(url_for('view_mill'))
+
+        except Exception as e:
+            flash(f"An error occurred: {str(e)}", "error")
+
     return render_template('Add_Mill.html')
 
-
+@app.route('/edit_profile')
+def edit_profile():
+    return render_template('Edit_Profile.html')
 
 if __name__ == '__main__':
     app.run(debug=True,use_reloader=False)
