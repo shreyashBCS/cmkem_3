@@ -12,8 +12,7 @@ import uuid
 import logging
 import time
 from datetime import datetime
-from PIL import Image
-
+import cv2
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
@@ -30,9 +29,11 @@ mysql = MySQL(app)
 UPLOAD_FOLDER = os.path.join('static','profile_pictures')
 os.makedirs(UPLOAD_FOLDER,exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG)
+
 
 @app.route('/')
 def index():
@@ -1170,6 +1171,8 @@ def office_fund(membership_id):
     finally:
         cursor.close()
 # 
+
+
 @app.route('/Account_Reg')
 def account_reg():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -1179,37 +1182,44 @@ def account_reg():
     
     return render_template('Account_Reg.html', users=users)
 
-
+# Function to check allowed file types
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 @app.route('/reg_form', methods=['GET', 'POST'])
 def reg_form():
     if request.method == 'GET':
         return render_template('reg_form.html')
 
     elif request.method == 'POST':
-        # Get form data
-        first_name = request.form['firstName']
-        last_name = request.form['lastName']
-        email = request.form['email']
-        password = request.form['password']
-        user_type = request.form['userType']
-        profile_pic = request.files['profilePicture']
+        try:
+            # Get form data
+            first_name = request.form['firstName']
+            last_name = request.form['lastName']
+            email = request.form['email']
+            password = request.form['password']
+            user_type = request.form['userType']
+            profile_pic = request.files['profilePicture']
 
-        # Validate and process the uploaded file
-        if profile_pic and allowed_file(profile_pic.filename):
-            try:
-                # Generate a unique filename
+            # Validate and process the uploaded file
+            if profile_pic and allowed_file(profile_pic.filename):
+                # Secure filename
+                filename = secure_filename(profile_pic.filename)
                 timestamp = int(datetime.now().timestamp())
-                filename = f"{timestamp}-{profile_pic.filename}"
+                filename = f"{timestamp}-{filename}"
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                
-                image=Image.open(profile_pic)
-                max_size=(200,200)
-                image.thumbnail(max_size)
+
+                # Save the original file first
                 profile_pic.save(filepath)
-                image.save(filepath)
+
+                # Process the image using OpenCV
+                img = cv2.imread(filepath)  # Read image
+                img_resized = cv2.resize(img, (200, 200))  # Resize to 200x200
+                filepath_jpg = os.path.join(app.config['UPLOAD_FOLDER'], f"{timestamp}.jpg")
+
+                cv2.imwrite(filepath_jpg, img_resized, [int(cv2.IMWRITE_JPEG_QUALITY), 90])  # Save as JPEG with quality 90
 
                 # Hash the password
-                hashed_password = generate_password_hash(password,method='pbkdf2:sha256')
+                hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
                 # Insert user into the database
                 with mysql.connection.cursor() as cursor:
@@ -1218,25 +1228,20 @@ def reg_form():
                         (`cm_user_id`, `fname`, `lname`, `cm_password`, `user_type`, `datetime_created`, `profile_picture_location`) 
                         VALUES (%s, %s, %s, %s, %s, NOW(), %s)
                     """
-                    cursor.execute(sql, (email, first_name, last_name, hashed_password, user_type, filename))
+                    cursor.execute(sql, (email, first_name, last_name, hashed_password, user_type, f"{timestamp}.jpg"))
                     mysql.connection.commit()
 
                 flash("User registered successfully!", "success")
                 return redirect(url_for('reg_form'))
 
-            except Exception as e:
-                mysql.connection.rollback()
-                flash(f"Error registering user: {str(e)}", "danger")
-                return redirect(url_for('reg_form'))
+            else:
+                flash("Invalid file upload. Only images (PNG, JPG, JPEG, GIF) are allowed.", "danger")
 
-        else:
-            flash("Invalid file upload. Only images are allowed.", "danger")
-            return redirect(url_for('reg_form'))
+        except Exception as e:
+            mysql.connection.rollback()
+            flash(f"Error registering user: {str(e)}", "danger")
 
-def allowed_file(filename):
-    """Check if the file has an allowed extension."""
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+        return redirect(url_for('reg_form'))
 # 
 @app.route('/logout')
 def logout():

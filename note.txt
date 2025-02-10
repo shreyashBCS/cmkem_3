@@ -233,3 +233,6 @@ def index():
 /////////////
 
 
+make -> 
+see where index has been used
+/login
