@@ -47,7 +47,6 @@ def hash_password(password):
     return generate_password_hash(password)
 
 # 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -58,19 +57,23 @@ def login():
         if not cm_user_id or not cm_password:
             error = "Username or Password is invalid"
         else:
-            cur = mysql.connection.cursor()
+            cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)  # ✅ Use DictCursor to fetch column names
             cur.execute("SELECT cm_user_id, cm_password, user_type FROM cm_users WHERE cm_user_id = %s", (cm_user_id,))
             user = cur.fetchone()
 
             if user is None:
                 error = "User not found"
-            elif check_password_hash(user['cm_password'], cm_password):  # Correct password check
-                session['login_user'] = user['cm_user_id']  # Store session
+            elif check_password_hash(user['cm_password'], cm_password):  # ✅ Verify password
+                session['logged_user_id'] = user['cm_user_id']  # ✅ Fix session key
+                session['user_type'] = user['user_type']  # ✅ Store user type (optional)
+                
+                # ✅ Update last login & log session
                 cur.execute("UPDATE cm_users SET last_login = NOW() WHERE cm_user_id = %s", (cm_user_id,))
                 cur.execute("INSERT INTO tbl_logged_sessions (session_user, session_date) VALUES (%s, NOW())", (cm_user_id,))
                 mysql.connection.commit()
                 cur.close()
-                return redirect('/dashboard')
+                
+                return redirect('/dashboard')  # ✅ Redirect after login
             else:
                 error = "Username or Password is invalid"
 
@@ -337,14 +340,14 @@ def new_member_registration():
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             query = """
                 INSERT INTO tbl_member_registration 
-                (reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id, address, 
+                ( mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id, address, 
                 aadhar_number, pan_number, esic_number, gender, age, retired_resigned, reg_fee, pending_amt, pending_penalty, pendingFrom, pendingTo, 
                 donation_fee, office_fund, datetime_created, reg_from_date, next_renewal_date, created_by) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
 
             values = (
-                reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id, address,
+                 mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id, address,
                 aadhar_number, pan_number, esic_number, gender, age, retired_resigned, reg_fee, pending_amt, pending_penalty,
                 pendingFrom, pendingTo, donation_fee, office_fund, now, reg_from_date, next_renewal_date, logged_user_id
             )
