@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, session,redirect, url_for, flash, send_file
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import math
@@ -13,6 +13,7 @@ import logging
 import time
 from datetime import datetime
 import cv2
+import hashlib
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
@@ -34,8 +35,65 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 # logging configuration
 logging.basicConfig(level=logging.DEBUG)
 
+# 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    return redirect('/login')  # Redirect to login page
+
+
+def hash_password(password):
+    """Hash a password using SHA-256"""
+    return generate_password_hash(password)
+
+# 
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        cm_user_id = request.form.get('cm_user_id', '').strip().lower()
+        cm_password = request.form.get('cm_password', '').strip()
+
+        if not cm_user_id or not cm_password:
+            error = "Username or Password is invalid"
+        else:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT cm_user_id, cm_password, user_type FROM cm_users WHERE cm_user_id = %s", (cm_user_id,))
+            user = cur.fetchone()
+
+            if user is None:
+                error = "User not found"
+            elif check_password_hash(user['cm_password'], cm_password):  # Correct password check
+                session['login_user'] = user['cm_user_id']  # Store session
+                cur.execute("UPDATE cm_users SET last_login = NOW() WHERE cm_user_id = %s", (cm_user_id,))
+                cur.execute("INSERT INTO tbl_logged_sessions (session_user, session_date) VALUES (%s, NOW())", (cm_user_id,))
+                mysql.connection.commit()
+                cur.close()
+                return redirect('/dashboard')
+            else:
+                error = "Username or Password is invalid"
+
+            cur.close()
+
+    return render_template('Login.html', error=error)
+
+# 
+
+@app.route('/logout')
+def logout():
+    if 'login_user' in session:
+        logged_user_id = session['login_user']
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE cm_users SET last_logout = NOW() WHERE cm_user_id = %s", (logged_user_id,))
+        mysql.connection.commit()
+        cur.close()
+    
+    session.pop('login_user', None)  # Remove user from session
+    return redirect('/login')
+
+# 
+@app.route('/dashboard')
 def index():
     """Render the index page with paginated and filtered member data."""
     # Get query parameters from the form
@@ -127,95 +185,194 @@ def index():
     finally:
         cursor.close()
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
 # NEW MEMBER MEMBER REGISTRATION
-@app.route('/new_member_registration', methods=['GET', 'POST'])
+# @app.route('/new_member_registration', methods=['GET', 'POST'])
+# def new_member_registration():
+    
+#     return render_template('new_member_registration.html')
+
+
+# NEW MEMBER MEMBER REGISTRATION
+# @app.route('/register_a_member', methods=['GET', 'POST'])
+# def register_a_member():
+
+#     # Create a cursor to interact with the MySQL database
+#     # cur = mysql.connection.cursor()
+
+#     # Fetch Today's Total Earnings (sum of all payments for today)
+#     # autoincre_reg_id = cur.execute("""
+#     #     select max(reg_id) from tbl_member_registration;""") + 1
+#     # print(autoincre_reg_id)
+    
+#     if request.method == 'POST':
+#         print("Received Data:", request.form.to_dict())
+#         try:
+#             # Extract form data with default handling for optional fields
+#             reg_num = 4153
+#             print(reg_num)
+#             mhada_no = request.form['txtMhadaNo'].strip()
+#             enrollment_type = request.form['select_enrollment_type']
+#             mill_name_id = request.form.get('select_mill_name', None)  # Optional field
+#             mill_worker_name = request.form['txtMillWorkerName'].strip()
+#             legal_hire_name = request.form.get('txtLegalHierName', None)
+#             phone_number = request.form['txtPhoneNumber'].strip()
+#             email = request.form['txtEmail'].strip()
+#             address = request.form['txtAddress'].strip()
+#             aadhar_number = request.form['txtAadharNumber'].strip()
+#             pan_number = request.form['txtPANNumber'].strip()
+#             esic_no = request.form['txtESICNumber'].strip()
+#             gender = request.form['select_gender']
+#             age = request.form['txtAge'].strip()
+#             retired_resigned = request.form['select_retired_resigned']
+#             new_reg_fee = request.form['txtNewRegFees'].strip()
+#             penalty = request.form['txtPenalty'].strip()
+#             regs_from = request.form['txtFromDate']
+#             regs_to = request.form['txtToDate']
+#             pending_amt = request.form['txtPendingAmt'].strip()
+#             pending_from = request.form['txtPendingFrom']
+#             pending_upto = request.form['txtPendingTo']
+#             donation = request.form['txtDonation'].strip()
+#             office_fund = request.form['txtOfficeFund'].strip()
+
+#             cur = mysql.connection.cursor()
+#             mysql.connection.autocommit = False  # Disable auto-commit
+
+#             print("print before insert")
+#             # Insert Member Data
+#             query = """INSERT INTO tbl_member_registration 
+#                 (reg_id,mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
+#                 aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
+#                 pending_amt, pending_from, pending_upto, donation, office_fund) 
+#                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            
+#             values = (
+#                 reg_num,mhada_no, enrollment_type, mill_name_id if mill_name_id else None, mill_worker_name,
+#                 legal_hire_name if legal_hire_name else None, phone_number, email, address,
+#                 aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty,
+#                 regs_from, regs_to, pending_amt, pending_from, pending_upto, donation, office_fund
+#             )
+            
+#             cur.execute(query, values)
+
+#             print("print after insert")
+            
+#             # Get the last inserted reg_id (auto-incremented ID)
+#             cur.execute("SELECT LAST_INSERT_ID()")
+#             new_reg_id = cur.fetchone()[0]
+
+#             # Update next renewal date
+#             cur.execute("UPDATE tbl_member_registration SET next_renewal_date = %s WHERE reg_id = %s", (regs_to, new_reg_id))
+
+#             # Generate Receipt
+#             cur.execute("SELECT MAX(rec_no) FROM tbl_reciepts")
+#             last_receipt = cur.fetchone()[0] or 0  # If None, start from 0
+#             new_receipt = last_receipt + 1
+#             cur.execute("INSERT INTO tbl_reciepts (rec_no, rec_type, rec_id) VALUES (%s, %s, %s)", (new_receipt, 'registration', new_reg_id))
+
+#             mysql.connection.commit()  # Commit all changes
+#             cur.close()
+
+#             flash("Member Registered Successfully!", "success")
+#             return render_template('index.html')
+            
+#         except Exception as e:
+#             mysql.connection.rollback()  # Rollback in case of error
+#             flash(f"An error occurred: {str(e)}", "error")
+#             # return redirect(url_for('new_member_registration'))
+
+#     else:
+#         # Fetch mill names for dropdown from database
+#         try:
+#             cur = mysql.connection.cursor()
+#             cur.execute("SELECT mill_id, mill_name FROM tbl_mills")
+#             mill_names = cur.fetchall()
+#             cur.close()
+#         except Exception as e:
+#             flash(f"An error occurred while fetching mill names: {str(e)}", "error")
+#             mill_names = []
+
+#         return render_template('new_member_registration.html', mill_names=mill_names)
+# new_member_registration
+
+@app.route("/new_member_registration", methods=["GET", "POST"])
 def new_member_registration():
-    if request.method == 'POST':
-        print("Received Data:", request.form.to_dict())
+    if "logged_user_id" not in session:
+        flash("Please log in first.", "danger")
+        return redirect("/login")  # Redirect to login page if not authenticated
+
+    if request.method == "POST":
         try:
-            # Extract form data with default handling for optional fields
-            mhada_no = request.form['txtMhadaNo'].strip()
-            enrollment_type = request.form['select_enrollment_type']
-            mill_name_id = request.form.get('select_mill_name', None)  # Optional field
-            mill_worker_name = request.form['txtMillWorkerName'].strip()
-            legal_hire_name = request.form.get('txtLegalHierName', None)
-            phone_number = request.form['txtPhoneNumber'].strip()
-            email = request.form['txtEmail'].strip()
-            address = request.form['txtAddress'].strip()
-            aadhar_number = request.form['txtAadharNumber'].strip()
-            pan_number = request.form['txtPANNumber'].strip()
-            esic_no = request.form['txtESICNumber'].strip()
-            gender = request.form['select_gender']
-            age = request.form['txtAge'].strip()
-            retired_resigned = request.form['select_retired_resigned']
-            new_reg_fee = request.form['txtNewRegFees'].strip()
-            penalty = request.form['txtPenalty'].strip()
-            regs_from = request.form['txtFromDate']
-            regs_to = request.form['txtToDate']
-            pending_amt = request.form['txtPendingAmt'].strip()
-            pending_from = request.form['txtPendingFrom']
-            pending_upto = request.form['txtPendingTo']
-            donation = request.form['txtDonation'].strip()
-            office_fund = request.form['txtOfficeFund'].strip()
+            logged_user_id = session["logged_user_id"]  # Get logged-in user
 
-            cur = mysql.connection.cursor()
-            mysql.connection.autocommit = False  # Disable auto-commit
+            # Get form data
+            reg_id = request.form.get("txtReg_id")
+            mhada_no = request.form.get("txtMhadaNo")
+            enrollment_type = request.form.get("select_enrollment_type")
+            mill_name_id = request.form.get("select_mill_name") or None
+            mill_worker_name = request.form.get("txtMillWorkerName").title()
+            legal_hier_name = request.form.get("txtLegalHierName").title()
+            phone_number = request.form.get("txtPhoneNumber")
+            email_id = request.form.get("txtEmail")
+            address = request.form.get("txtAddress")
+            aadhar_number = request.form.get("txtAadharNumber")
+            pan_number = request.form.get("txtPANNumber")
+            esic_number = request.form.get("txtESICNumber")
+            gender = request.form.get("select_gender")
+            age = int(request.form.get("txtAge"))
+            retired_resigned = request.form.get("select_retired_resigned")
+            reg_fee = int(request.form.get("txtNewRegFees"))
+            pending_amt = int(request.form.get("txtPendingAmt"))
+            pending_penalty = int(request.form.get("txtPenalty"))
+            pendingFrom = int(request.form.get("txtPendingFrom"))  # Store as integer (year)
+            pendingTo = int(request.form.get("txtPendingTo"))  # Store as integer (year)
+            donation_fee = int(request.form.get("txtDonation"))
+            office_fund = int(request.form.get("txtOfficeFund"))
+            reg_from_date = request.form.get("txtFromDate")
+            next_renewal_date = request.form.get("txtToDate")
 
-            # Insert Member Data
-            query = """INSERT INTO tbl_member_registration 
-                (mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hire_name, phone_number, email, address, 
-                aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty, regs_from, regs_to, 
-                pending_amt, pending_from, pending_upto, donation, office_fund) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-            
+            now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Current timestamp
+
+            # Insert Query
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            query = """
+                INSERT INTO tbl_member_registration 
+                (reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id, address, 
+                aadhar_number, pan_number, esic_number, gender, age, retired_resigned, reg_fee, pending_amt, pending_penalty, pendingFrom, pendingTo, 
+                donation_fee, office_fund, datetime_created, reg_from_date, next_renewal_date, created_by) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+
             values = (
-                mhada_no, enrollment_type, mill_name_id if mill_name_id else None, mill_worker_name,
-                legal_hire_name if legal_hire_name else None, phone_number, email, address,
-                aadhar_number, pan_number, esic_no, gender, age, retired_resigned, new_reg_fee, penalty,
-                regs_from, regs_to, pending_amt, pending_from, pending_upto, donation, office_fund
+                reg_id, mhada_no, enrollment_type, mill_name_id, mill_worker_name, legal_hier_name, phone_number, email_id, address,
+                aadhar_number, pan_number, esic_number, gender, age, retired_resigned, reg_fee, pending_amt, pending_penalty,
+                pendingFrom, pendingTo, donation_fee, office_fund, now, reg_from_date, next_renewal_date, logged_user_id
             )
-            
-            cur.execute(query, values)
 
-            # Get the last inserted reg_id (auto-incremented ID)
-            cur.execute("SELECT LAST_INSERT_ID()")
-            new_reg_id = cur.fetchone()[0]
+            cursor.execute(query, values)
+            mysql.connection.commit()
+            cursor.close()
 
-            # Update next renewal date
-            cur.execute("UPDATE tbl_member_registration SET next_renewal_date = %s WHERE reg_id = %s", (regs_to, new_reg_id))
+            flash("Member registered successfully!", "success")
+            return redirect(request.referrer)  # Redirect to the same page
 
-            # Generate Receipt
-            cur.execute("SELECT MAX(rec_no) FROM tbl_reciepts")
-            last_receipt = cur.fetchone()[0] or 0  # If None, start from 0
-            new_receipt = last_receipt + 1
-            cur.execute("INSERT INTO tbl_reciepts (rec_no, rec_type, rec_id) VALUES (%s, %s, %s)", (new_receipt, 'registration', new_reg_id))
-
-            mysql.connection.commit()  # Commit all changes
-            cur.close()
-
-            flash("Member Registered Successfully!", "success")
-            return redirect(url_for('new_member_registration'))
+        except MySQLdb.IntegrityError as e:
+            mysql.connection.rollback()
+            flash(f"Database Error: {str(e)}", "danger")
+            return redirect(request.referrer)
 
         except Exception as e:
-            mysql.connection.rollback()  # Rollback in case of error
-            flash(f"An error occurred: {str(e)}", "error")
-            return redirect(url_for('new_member_registration'))
+            flash(f"Error: {str(e)}", "danger")
+            return redirect(request.referrer)
 
-    else:
-        # Fetch mill names for dropdown from database
-        try:
-            cur = mysql.connection.cursor()
-            cur.execute("SELECT mill_id, mill_name FROM tbl_mills")
-            mill_names = cur.fetchall()
-            cur.close()
-        except Exception as e:
-            flash(f"An error occurred while fetching mill names: {str(e)}", "error")
-            mill_names = []
+    # Render registration page on GET request
+    return render_template("new_member_registration.html")  
 
-        return render_template('new_member_registration.html', mill_names=mill_names)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+
 @app.route('/status')
 def status():
     # Get the current date in the format YYYY-MM-DD
@@ -282,9 +439,7 @@ def status():
                            logged_sessions=logged_sessions,
                            new_registrations=new_registrations,
                            renewals_today=renewals_today,
-                           pending_to_renew=pending_to_renew,
-                           
-                           )
+                           pending_to_renew=pending_to_renew,)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 @app.route('/adv_report')
@@ -1185,6 +1340,8 @@ def account_reg():
 # Function to check allowed file types
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 @app.route('/reg_form', methods=['GET', 'POST'])
 def reg_form():
     if request.method == 'GET':
@@ -1243,12 +1400,7 @@ def reg_form():
 
         return redirect(url_for('reg_form'))
 # 
-@app.route('/logout')
-def logout():
-    """Log out the user."""
-    # Clear session or perform other logout logic
-    flash("You have been logged out.", "success")
-    return redirect(url_for('index'))
+
 # 
 @app.route('/view_mill', methods=['GET', 'POST'])
 def view_mill():
@@ -1293,7 +1445,6 @@ def view_mill():
     except Exception as e:
         flash(f"An error occurred: {str(e)}", "error")
         return render_template('View_Mill.html', mills=[], search_query='')
-
 
 #
 @app.route('/add_mill', methods=['GET', 'POST'])

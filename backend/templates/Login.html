@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f4a621;
@@ -22,6 +22,8 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            width: 100%;
+            max-width: 400px;
         }
 
         .logo img {
@@ -32,26 +34,30 @@
 
 <body>
     <div class="text-center logo mb-3">
-        <img src="logo.png" alt="Century Mill Logo">
-        <h3>Century Mill</h3>
-        <p>Kamgar Ekta Munch</p>
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="height: 40px;" class="me-2">
+
     </div>
     <div class="login-box">
         <h4 class="mb-3">Please Sign In</h4>
-        <form>
-            <div class="form-group">
-                <input type="text" class="form-control" placeholder="Enter User ID" required>
+        <form action="/login" method="post" autocomplete="off">
+            <div class="form-group mb-3">
+                <input type="text" class="form-control" name="cm_user_id" placeholder="Email ID" required>
             </div>
-            <div class="form-group">
-                <input type="password" class="form-control" placeholder="Enter Password" required>
+            <div class="form-group mb-3">
+                <input type="password" class="form-control" name="cm_password" placeholder="Enter Password" required>
             </div>
-            <button type="submit" class="btn btn-success btn-block">Login</button>
+            <button type="submit" class="btn btn-success w-100">Login</button>
         </form>
     </div>
+    <script>
+        window.onload = function () {
+            document.querySelector("input[name='cm_user_id']").value = "";
+            document.querySelector("input[name='cm_password']").value = "";
+        };
+    </script>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 
 </html>
